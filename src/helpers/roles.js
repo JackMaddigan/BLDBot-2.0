@@ -1,5 +1,5 @@
 const roles = {
-  mod: "",
+  mod: "1165078966336495656",
 };
 
-module.exports = { roles };
+module.exports = roles;

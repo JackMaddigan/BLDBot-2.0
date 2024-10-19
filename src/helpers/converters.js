@@ -1,4 +1,6 @@
 function centiToDisplay(centi, removeDecimals) {
+  if (centi == -1) return "DNF";
+  if (centi == -2) return "DNS";
   const hours = Math.floor(centi / 360000);
   const minutes = Math.floor((centi - hours * 360000) / 6000);
   const seconds = Math.floor((centi - hours * 360000 - minutes * 6000) / 100);

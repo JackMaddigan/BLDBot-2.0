@@ -19,7 +19,7 @@ class Submission {
 
   addUserDetails(int) {
     const isMod = this.checkMod(int);
-    const submitForUser = int.options.getUser("submitFor");
+    const submitForUser = int.options.getUser("submit-for");
     if (isMod && submitForUser != null) {
       // is mod and there is a user to submit for
       this.userId = submitForUser.id;
@@ -33,7 +33,6 @@ class Submission {
   }
 
   addResult(int) {
-    eventShortNameToId;
     this.eventId = eventShortNameToId[int.options.getSubcommand()];
     // process results
     const args = int.options.getString("results").split(/[\s,]+/);
@@ -44,6 +43,7 @@ class Submission {
   }
 
   checkMod(int) {
+    console.log(roles.mod);
     return int.guild.members.cache.get(int.user.id).roles.cache.has(roles.mod);
   }
 }

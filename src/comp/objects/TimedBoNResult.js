@@ -1,3 +1,6 @@
+const { centiToDisplay } = require("../../helpers/converters");
+const emoji = require("../../helpers/emojis");
+
 class TimedBoNResult {
   eventId;
   solves = [];
@@ -65,6 +68,25 @@ class TimedBoNResult {
       ? 0
       : Math.round(sum / this.solves.length);
     this.best = hasSuccess ? min : -1;
+  }
+
+  /**
+   * Make the reply string for the bot after submitting the result
+   * @param {boolean} submitFor
+   * @returns string
+   */
+  toReplyString(submitFor) {
+    let part1 = `Submitted a best single of **${centiToDisplay(this.best)}**`;
+    let part2 =
+      this.average > 0
+        ? ` and a mean of **${centiToDisplay(this.average)}**`
+        : "";
+    let part3 = submitFor ? ` for <@${this.userId}>` : "";
+    let part4 = this.best <= 0 ? " " + emoji.bldsob : "!";
+    let part5 = `\n(${this.solves
+      .map((solve) => centiToDisplay(solve))
+      .join(", ")})`;
+    return part1 + part2 + part3 + part4 + part5;
   }
 }
 

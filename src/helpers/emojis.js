@@ -3,4 +3,4 @@ const emoji = {
   morecubes: "<:morecubes:1119043665210376282>",
 };
 
-module.exports = { emoji };
+module.exports = emoji;
