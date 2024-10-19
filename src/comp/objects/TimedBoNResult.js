@@ -5,7 +5,7 @@ class TimedBoNResult {
   best;
   userId;
   username;
-  placing;
+  placing = null;
 
   constructor(eventId, solves, userId, username) {
     this.solves = solves;
@@ -66,7 +66,6 @@ class TimedBoNResult {
       : Math.round(sum / this.solves.length);
     this.best = hasSuccess ? min : -1;
   }
-
-  displayInSubmitReply() {}
-  displayInFullResults() {}
 }
+
+module.exports = { TimedBoNResult };

@@ -1,6 +1,8 @@
 require("dotenv").config();
 
 const { Client, IntentsBitField } = require("discord.js");
+const { registerCommands } = require("./commands");
+const handleSubmit = require("./comp/handle-submit");
 
 const cron = require("node-cron");
 
@@ -15,12 +17,14 @@ const client = new Client({
 
 client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
+  // registerCommands(client);
 });
 
 client.on("interactionCreate", async (int) => {
   try {
     switch (int.commandName) {
       case "submit":
+        await handleSubmit(int);
         break;
       default:
         break;
