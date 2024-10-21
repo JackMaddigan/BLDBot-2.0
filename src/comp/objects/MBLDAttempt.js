@@ -8,6 +8,7 @@ class MBLDAttempt {
   time; // seconds
   result;
   isDnf;
+  num;
 
   constructor(num) {
     this.time = num % 100000;
@@ -17,13 +18,23 @@ class MBLDAttempt {
     this.points = this.solved - this.unsolved;
     this.result = num;
     this.isDnf = this.points < 0 || this.solved <= 1;
+    this.num = num;
   }
 
   toString() {
     return `${this.solved}/${this.attempted} in ${centiToDisplay(
       this.time * 100,
       true
-    )} (${this.points} points)`;
+    )} (${this.isDnf ? "DNF" : this.points + " points"})`;
+  }
+
+  toBasicString() {
+    return this.isDnf
+      ? "DNF"
+      : `${this.solved}/${this.attempted} ${centiToDisplay(
+          this.time * 100,
+          true
+        )}`;
   }
 
   compareTo(otherMBLDAttempt) {

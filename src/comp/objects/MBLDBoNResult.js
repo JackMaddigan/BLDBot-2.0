@@ -9,14 +9,27 @@ class MBLDBoNResult {
   userId;
   username;
   placing = null;
+  list = "";
 
-  constructor(eventId, solves, userId, username) {
+  constructor(eventId, solves, userId, username, dbResult) {
     // solves is an array of mbld objects
-    this.solves = solves.map((num) => new MBLDAttempt(num));
-    this.eventId = eventId;
-    this.userId = userId;
-    this.username = username;
-    this.calculateStats();
+    if (!dbResult) {
+      this.solves = solves.map((num) => new MBLDAttempt(num));
+      this.eventId = eventId;
+      this.userId = userId;
+      this.username = username;
+      this.toList();
+      this.calculateStats();
+    } else {
+      console.log(dbResult);
+      this.best = new MBLDAttempt(dbResult.best);
+      console.log(this.best);
+      this.average = null;
+      this.eventId = dbResult.eventId;
+      this.username = dbResult.username;
+      this.userId = dbResult.userId;
+      this.list = dbResult.attempts;
+    }
   }
 
   /**
@@ -68,11 +81,36 @@ class MBLDBoNResult {
       : this.best.time < 3240
       ? " " + emoji.morecubes
       : "!";
-    let part4 =
-      this.solves.length > 1
-        ? `\n(${this.solves.map((solve) => solve.toString(solve)).join(", ")})`
-        : "";
+    let part4 = this.solves.length > 1 ? `\n(${this.list})` : "";
     return part1 + part2 + part3 + part4;
+  }
+
+  /**
+   * toList
+   * @returns string list of formatted solves
+   */
+  toList() {
+    this.list = this.solves.map((solve) => solve.toString(solve)).join(", ");
+  }
+
+  toCurrentRankingsString() {
+    // *\n-# ⤷(${this.list}) not included
+    return `**${this.best.toBasicString()}**`;
+  }
+
+  toViewString() {
+    return `**${centiToDisplay(this.best.toBasicString())}**`;
+  }
+
+  getDbParameters() {
+    return [
+      this.userId,
+      this.username,
+      this.eventId,
+      this.list,
+      this.best.num,
+      null,
+    ];
   }
 }
 

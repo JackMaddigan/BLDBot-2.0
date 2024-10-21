@@ -9,13 +9,24 @@ class TimedBoNResult {
   userId;
   username;
   placing = null;
+  list = "";
 
-  constructor(eventId, solves, userId, username) {
-    this.solves = solves;
-    this.eventId = eventId;
-    this.userId = userId;
-    this.username = username;
-    this.calculateStats();
+  constructor(eventId, solves, userId, username, dbResult) {
+    if (!dbResult) {
+      this.solves = solves;
+      this.eventId = eventId;
+      this.userId = userId;
+      this.username = username;
+      this.toList();
+      this.calculateStats();
+    } else {
+      this.best = dbResult.best;
+      this.average = dbResult.average;
+      this.eventId = dbResult.eventId;
+      this.username = dbResult.username;
+      this.userId = dbResult.userId;
+      this.list = dbResult.attempts;
+    }
   }
 
   /**
@@ -83,10 +94,37 @@ class TimedBoNResult {
         : "";
     let part3 = submitFor ? ` for <@${this.userId}>` : "";
     let part4 = this.best <= 0 ? " " + emoji.bldsob : "!";
-    let part5 = `\n(${this.solves
-      .map((solve) => centiToDisplay(solve))
-      .join(", ")})`;
+    let part5 = `\n(${this.list})`;
     return part1 + part2 + part3 + part4 + part5;
+  }
+
+  /**
+   * toList
+   * @returns string list of solves foramtted and separated by comma
+   */
+  toList() {
+    this.list = this.solves.map((solve) => centiToDisplay(solve)).join(", ");
+  }
+
+  toCurrentRankingsString() {
+    return `**${centiToDisplay(this.best)}**\n-# ⤷ (${this.list})`;
+  }
+
+  toViewString() {
+    return `best: **${centiToDisplay(this.best)}**\nmean: **${centiToDisplay(
+      this.average
+    )}**\n(${this.list})`;
+  }
+
+  getDbParameters() {
+    return [
+      this.userId,
+      this.username,
+      this.eventId,
+      this.list,
+      this.best,
+      this.average,
+    ];
   }
 }
 

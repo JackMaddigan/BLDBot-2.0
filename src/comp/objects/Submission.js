@@ -36,6 +36,16 @@ class Submission {
     this.eventId = eventShortNameToId[int.options.getSubcommand()];
     // process results
     const args = int.options.getString("results").split(/[\s,]+/);
+    // check if there is an extra event
+    if (
+      eventInfo[this.eventId].eventId == "extra" &&
+      eventInfo[this.eventId].process == null
+    ) {
+      this.result = null;
+      this.errorMsg = "There is not an extra event at the moment!";
+      return;
+    }
+
     // use the processing function from the eventInfo file for the particular event, returns the result object and then the error message, result object is null if error message
     const { result, errorMsg } = eventInfo[this.eventId].process(args, this);
     this.result = result;
@@ -43,7 +53,6 @@ class Submission {
   }
 
   checkMod(int) {
-    console.log(roles.mod);
     return int.guild.members.cache.get(int.user.id).roles.cache.has(roles.mod);
   }
 }
