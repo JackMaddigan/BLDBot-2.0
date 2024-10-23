@@ -10,6 +10,7 @@ class MBLDBoNResult {
   username;
   placing = null;
   list = "";
+  isDnf = false;
 
   constructor(eventId, solves, userId, username, dbResult) {
     // solves is an array of mbld objects
@@ -29,6 +30,7 @@ class MBLDBoNResult {
       this.userId = dbResult.userId;
       this.list = dbResult.attempts;
     }
+    this.isDnf = this.best.isDnf;
   }
 
   /**
@@ -101,6 +103,13 @@ class MBLDBoNResult {
     return `**${this.best.toBasicString()}**`;
   }
 
+  toPodiumString() {
+    return `**${this.best.toBasicString()}**`;
+  }
+
+  toTextFileString() {
+    return this.best.toBasicString();
+  }
   /**
    * Return the values that get saved to db
    * @returns array of items to save to db

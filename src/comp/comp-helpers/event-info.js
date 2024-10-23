@@ -31,6 +31,7 @@ const eventInfo = {
     numAttempts: 3,
     process: processTimedBoN,
     resultObj: TimedBoNResult,
+    scrambleArgs: ["333ni", "0"],
   },
   "444bf": {
     eventName: "4BLD",
@@ -40,6 +41,7 @@ const eventInfo = {
     numAttempts: 3,
     process: processTimedBoN,
     resultObj: TimedBoNResult,
+    scrambleArgs: ["444bld", "0"],
   },
   "555bf": {
     eventName: "5BLD",
@@ -49,6 +51,7 @@ const eventInfo = {
     numAttempts: 3,
     process: processTimedBoN,
     resultObj: TimedBoNResult,
+    scrambleArgs: ["555bld", "60"],
   },
   "333mbf": {
     eventName: "MBLD",
@@ -58,6 +61,7 @@ const eventInfo = {
     numAttempts: 1,
     process: processMBLDBoN,
     resultObj: MBLDBoNResult,
+    scrambleArgs: ["333ni", "0"],
   },
   extra: {
     eventName: null,

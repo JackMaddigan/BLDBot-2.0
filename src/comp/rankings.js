@@ -11,7 +11,6 @@ async function generateRankedResults() {
 
   // add all the results as new result objects to their corresponding arrays
   for (const result of allResults) {
-    console.log(result.eventId);
     const resultConstructor = eventInfo[result.eventId].resultObj;
     // skip if it is an extra event result when there is no valid extra event, although this shouldn't happen
     if (resultConstructor == null) continue;
@@ -33,7 +32,6 @@ async function generateRankedResults() {
   }
 
   // eventResults are all ranked
-  console.log(eventResults);
   return eventResults;
 }
 
@@ -64,4 +62,5 @@ async function currentRankings(int) {
 
 module.exports = {
   currentRankings,
+  generateRankedResults,
 };

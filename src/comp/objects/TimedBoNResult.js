@@ -10,6 +10,7 @@ class TimedBoNResult {
   username;
   placing = null;
   list = "";
+  isDnf = false;
 
   constructor(eventId, solves, userId, username, dbResult) {
     if (!dbResult) {
@@ -27,6 +28,7 @@ class TimedBoNResult {
       this.userId = dbResult.userId;
       this.list = dbResult.attempts;
     }
+    this.isDnf = this.best <= 0;
   }
 
   /**
@@ -93,7 +95,7 @@ class TimedBoNResult {
         ? ` and a mean of **${centiToDisplay(this.average)}**`
         : "";
     let part3 = submitFor ? ` for <@${this.userId}>` : "";
-    let part4 = this.best <= 0 ? " " + emoji.bldsob : "!";
+    let part4 = this.best <= 0 ? " " + emoji.bldsob : "";
     let part5 = `\n(${this.list})`;
     return part1 + part2 + part3 + part4 + part5;
   }
@@ -111,9 +113,21 @@ class TimedBoNResult {
   }
 
   toViewString() {
-    return `best: **${centiToDisplay(this.best)}**\nmean: **${centiToDisplay(
+    return `Best: **${centiToDisplay(this.best)}**\nMean: **${centiToDisplay(
       this.average
     )}**\n(${this.list})`;
+  }
+
+  toPodiumString() {
+    return `**${centiToDisplay(this.best)}**\n-# (*${this.list}*) ${
+      this.average > 0 ? " *Mean: " + centiToDisplay(this.average) + "*" : ""
+    }`;
+  }
+
+  toTextFileString() {
+    return `${centiToDisplay(this.best)} (${this.list}) ${
+      this.mean > 0 ? " Mean: " + centiToDisplay(this.mean) : ""
+    }`;
   }
 
   getDbParameters() {
