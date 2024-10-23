@@ -1,4 +1,3 @@
-const roles = require("../../helpers/roles.js");
 const {
   eventInfo,
   eventShortNameToId,
@@ -53,7 +52,9 @@ class Submission {
   }
 
   checkMod(int) {
-    return int.guild.members.cache.get(int.user.id).roles.cache.has(roles.mod);
+    return int.guild.members.cache
+      .get(int.user.id)
+      .roles.cache.has(process.env.modRoleId);
   }
 }
 

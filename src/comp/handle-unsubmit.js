@@ -1,11 +1,10 @@
 const { deleteData } = require("../db");
-const roles = require("../helpers/roles");
 
 async function handleUnsubmit(int) {
   // check user has mod permission, although this command should only be visible to mod anyway
   const isMod = int.guild.members.cache
     .get(int.user.id)
-    .roles.cache.has(roles.mod);
+    .roles.cache.has(process.env.modRoleId);
   if (!isMod) {
     await int.reply({ ephemeral: true, content: "Missing permission!" });
   }
