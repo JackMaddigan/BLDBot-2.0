@@ -1,4 +1,5 @@
 const { toCenti } = require("../../helpers/converters");
+const emoji = require("../../helpers/emojis");
 const { TimedBoNResult } = require("../objects/TimedBoNResult");
 
 /**
@@ -35,7 +36,11 @@ function processTimedBoN(args, submission) {
     submission.userId,
     submission.username
   );
-  return { result: result, errorMsg: null };
+  return {
+    result: result,
+    errorMsg: null,
+    reactionEmoji: result.isDnf ? emoji.bldsob : null,
+  };
 }
 
 module.exports = { processTimedBoN };

@@ -7,10 +7,16 @@ async function handleSubmit(int) {
       await int.reply({ ephemeral: true, content: submission.errorMsg });
       return;
     }
-    await int.reply({
-      ephemeral: true,
+    const reply = await int.reply({
       content: submission.result.toReplyString(submission.showSubmitFor),
+      fetchReply: true,
     });
+
+    if (submission.reactionEmoji)
+      await reply
+        .react(submission.reactionEmoji)
+        .catch((e) => console.error(e));
+
     await saveData(
       `INSERT INTO results (userId, username, eventId, attempts, best, average)
 VALUES (?, ?, ?, ?, ?, ?)

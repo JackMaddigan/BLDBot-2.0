@@ -10,6 +10,7 @@ class Submission {
   username;
   eventId;
   errorMsg;
+  reactionEmoji;
 
   constructor(int) {
     this.addUserDetails(int);
@@ -46,9 +47,13 @@ class Submission {
     }
 
     // use the processing function from the eventInfo file for the particular event, returns the result object and then the error message, result object is null if error message
-    const { result, errorMsg } = eventInfo[this.eventId].process(args, this);
+    const { result, errorMsg, reactionEmoji } = eventInfo[this.eventId].process(
+      args,
+      this
+    );
     this.result = result;
     this.errorMsg = errorMsg;
+    this.reactionEmoji = reactionEmoji;
   }
 
   checkMod(int) {

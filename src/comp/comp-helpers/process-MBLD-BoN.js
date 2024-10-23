@@ -1,4 +1,5 @@
 const { toCenti } = require("../../helpers/converters");
+const emoji = require("../../helpers/emojis");
 const { MBLDBoNResult } = require("../objects/MBLDBoNResult");
 
 /**
@@ -7,7 +8,6 @@ const { MBLDBoNResult } = require("../objects/MBLDBoNResult");
  * @returns results and string
  */
 function processMBLDBoN(args, submission) {
-  console.log(args, this);
   let errorMsgLines = [];
   const scores = [];
   const times = [];
@@ -79,7 +79,6 @@ function processMBLDBoN(args, submission) {
     attemptNumbers.push(solved + attempted + secStr);
   }
 
-  console.log(attemptNumbers);
   const result = new MBLDBoNResult(
     this.eventId,
     attemptNumbers,
@@ -87,7 +86,15 @@ function processMBLDBoN(args, submission) {
     submission.username
   );
 
-  return { result: result, errorMsg: null };
+  return {
+    result: result,
+    errorMsg: null,
+    reactionEmoji: result.isDnf
+      ? emoji.bldsob
+      : result.best.time < 3240
+      ? emoji.morecubes
+      : null,
+  };
 }
 
 module.exports = { processMBLDBoN };
