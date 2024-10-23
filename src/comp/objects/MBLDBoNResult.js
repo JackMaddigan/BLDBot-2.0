@@ -21,9 +21,8 @@ class MBLDBoNResult {
       this.toList();
       this.calculateStats();
     } else {
-      console.log(dbResult);
+      // result from the db
       this.best = new MBLDAttempt(dbResult.best);
-      console.log(this.best);
       this.average = null;
       this.eventId = dbResult.eventId;
       this.username = dbResult.username;
@@ -80,7 +79,7 @@ class MBLDBoNResult {
       ? " " + emoji.bldsob
       : this.best.time < 3240
       ? " " + emoji.morecubes
-      : "!";
+      : "";
     let part4 = this.solves.length > 1 ? `\n(${this.list})` : "";
     return part1 + part2 + part3 + part4;
   }
@@ -99,9 +98,13 @@ class MBLDBoNResult {
   }
 
   toViewString() {
-    return `**${centiToDisplay(this.best.toBasicString())}**`;
+    return `**${this.best.toBasicString()}**`;
   }
 
+  /**
+   * Return the values that get saved to db
+   * @returns array of items to save to db
+   */
   getDbParameters() {
     return [
       this.userId,

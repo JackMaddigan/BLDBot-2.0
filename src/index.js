@@ -5,6 +5,7 @@ const { registerCommands } = require("./commands");
 const handleSubmit = require("./comp/handle-submit");
 const { currentRankings } = require("./comp/rankings");
 const { handleView } = require("./comp/view");
+const { handleCompCommand } = require("./comp/comp");
 
 const cron = require("node-cron");
 const handleUnsubmit = require("./comp/handle-unsubmit");
@@ -38,6 +39,9 @@ client.on("interactionCreate", async (int) => {
         break;
       case "unsubmit":
         await handleUnsubmit(int);
+        break;
+      case "comp":
+        await handleCompCommand(int);
         break;
       default:
         break;

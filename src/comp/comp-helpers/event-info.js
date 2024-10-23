@@ -79,4 +79,25 @@ const eventShortNameToId = {
   extra: "extra",
 };
 
-module.exports = { eventInfo, eventShortNameToId, wca_events };
+/*
+  { name: "MBLD BoX", value: "mbldbox" },
+    { name: "Timed BoX", value: "timedbox" },
+    { name: "Timed MoX", value: "timedmox" },
+    { name: "Timed AoX", value: "timedaox" },
+    { name: "FMC MoX", value: "fmcmox" }
+ */
+
+const eventFormatToProcessAndObj = {
+  timedbox: { process: processTimedBoN, resultObj: TimedBoNResult },
+  timedmox: { process: null, resultObj: null },
+  timedaox: { process: null, resultObj: null },
+  fmcmox: { process: null, resultObj: null },
+  mbldbox: { process: processMBLDBoN, resultObj: MBLDBoNResult },
+};
+
+module.exports = {
+  eventInfo,
+  eventShortNameToId,
+  wca_events,
+  eventFormatToProcessAndObj,
+};

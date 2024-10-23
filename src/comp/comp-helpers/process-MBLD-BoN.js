@@ -23,6 +23,7 @@ function processMBLDBoN(args, submission) {
 
   // validate the scores
   const scoresRegex = /^\d+\/\d+$/;
+  const dnfDnsRegex = /^dnf|dns$/i;
   for (let score of scores) {
     if (!score.match(scoresRegex)) {
       errorMsgLines.push(`Invalid score: ${score}`);

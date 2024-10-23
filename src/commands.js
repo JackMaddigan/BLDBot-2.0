@@ -117,8 +117,11 @@ async function registerCommands(client) {
               .setDescription("Format of the event")
               .setRequired(true)
               .setChoices(
-                { name: "MBLD", value: "2" },
-                { name: "Timed", value: "1" }
+                { name: "MBLD BoX", value: "mbldbox" },
+                { name: "Timed BoX", value: "timedbox" },
+                { name: "Timed MoX", value: "timedmox" },
+                { name: "Timed AoX", value: "timedaox" },
+                { name: "FMC MoX", value: "fmcmox" }
               )
           )
           .addIntegerOption((option) =>
