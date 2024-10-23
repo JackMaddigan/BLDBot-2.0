@@ -23,7 +23,6 @@ function processMBLDBoN(args, submission) {
 
   // validate the scores
   const scoresRegex = /^\d+\/\d+$/;
-  const dnfDnsRegex = /^dnf|dns$/i;
   for (let score of scores) {
     if (!score.match(scoresRegex)) {
       errorMsgLines.push(`Invalid score: ${score}`);
@@ -44,14 +43,18 @@ function processMBLDBoN(args, submission) {
   }
 
   // validate length of scores
-  if (scores.length != this.numAttempts) {
+  if (scores.length > this.numAttempts || scores.length < 1) {
     errorMsgLines.push(
       `Invalid number of scores!\nExpected: ${this.numAttempts}, received: ${scores.length}`
     );
   }
 
   // validate length of times
-  if (times.length != this.numAttempts) {
+  if (
+    times.length > this.numAttempts ||
+    scores.length < 1 ||
+    scores.length !== times.length
+  ) {
     errorMsgLines.push(
       `Invalid number of times!\nExpected: ${this.numAttempts}, received: ${times.length}`
     );
@@ -64,7 +67,8 @@ function processMBLDBoN(args, submission) {
 
   // turn all attempts to numbers
   const attemptNumbers = [];
-  for (let i = 0; i < this.numAttempts; i++) {
+  for (let i = 0; i < times.length; i++) {
+    // removed this.numAttempts so you dont have to submit all attempts
     // AAABBBCCCCC where A=solved, B=total, C=seconds
     const secStr = Math.round(toCenti(times[i]) / 100)
       .toString()
