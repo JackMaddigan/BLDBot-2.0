@@ -168,7 +168,6 @@ async function endExtraEvent(int, client) {
     process: null,
     resultObj: null,
   };
-  // delete from key value
 }
 
 /**

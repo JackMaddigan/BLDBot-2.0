@@ -42,6 +42,30 @@ db.run(
   `CREATE TABLE IF NOT EXISTS comms (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT)`
 );
 
+db.run(`CREATE TABLE IF NOT EXISTS summary_results_to_beat (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            eventId Text UNIQUE,
+            best INTEGER,
+            average INTEGER
+  )`);
+
+// test();
+async function test() {
+  // console.log(await readData(`SELECT * FROM summary_results_to_beat`));
+  // const data = {
+  //   "333bf": { best: 2007, average: 2524 },
+  //   "444bf": { best: 11054, average: 15139 },
+  //   "555bf": { best: 28263, average: 44173 },
+  //   "333mbf": { best: 650350302, average: null },
+  // };
+  // for (const [key, val] of Object.entries(data)) {
+  //   await saveData(
+  //     `INSERT INTO summary_results_to_beat (eventId, best, average) VALUES (?, ?, ?)`,
+  //     [key, val.best, val.average]
+  //   );
+  // }
+}
+
 async function saveData(query, parameters) {
   try {
     return await new Promise((resolve, reject) => {

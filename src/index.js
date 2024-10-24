@@ -88,4 +88,24 @@ async function onStartUp() {
   }
 }
 
+// Cron Jobs to handle weekly comp and weekly comp warning
+cron.schedule("0 1 * * 0", async () => {
+  console.log("0100 Handling Comp");
+  try {
+    // Handle comp
+    await handleWeeklyComp(client);
+  } catch (error) {
+    console.error("Error Handling Comp", error);
+  }
+});
+
+cron.schedule("0 0 * * 0", () => {
+  try {
+    const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+    adminChannel.send("Results and new scrambles will be posted in one hour!");
+  } catch (error) {
+    console.error("Error", error);
+  }
+});
+
 client.login(process.env.token);
