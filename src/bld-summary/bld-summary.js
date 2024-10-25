@@ -2,6 +2,7 @@
 // fetch comps in the timeframe from wca live
 // fetch china comps, if error continue
 // add all results to list
+const fs = require("fs");
 
 const { readData } = require("../db");
 const {
@@ -16,31 +17,10 @@ const { compIdsQuery, roundQuery } = require("./queries");
 const eventIds = new Set(["333bf", "444bf", "555bf", "333mbf"]);
 const recordTags = new Set(["NR", "CR", "WR"]);
 
-// async function fetchAllCompIdsInTimeframe(startDate, endDate) {
-//   const url = `https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/rank/world/${filePath}.json`;
-//   const response = await fetch(url);
-//   if (!response.ok) {
-//     throw new Error(`HTTP error! status: ${response.status}`);
-//   }
-//   const responseJson = await response.json();
-//   const itemAtRankLimit = responseJson.items[ranksLimit];
-// }
-
 runBLDSummary();
 async function runBLDSummary() {
   // get results to beat
-  const resultsToBeat = (
-    await readData(
-      `SELECT eventId, best, average FROM summary_results_to_beat`,
-      []
-    )
-  ).reduce((accumulator, item) => {
-    accumulator[item.eventId] =
-      item.eventId === "333mbf"
-        ? { best: decodeMbldResult(item.best), average: null }
-        : { best: item.best, average: item.average };
-    return accumulator;
-  }, {});
+  const resultsToBeat = await getResultsToBeat();
   // Create a new Date object for the current date and time
   const today = new Date();
   // Calculate the date one week ago
@@ -48,39 +28,30 @@ async function runBLDSummary() {
   oneWeekAgo.setDate(today.getDate() - 7);
 
   // make collectedEventData object
-  const collectedEventData = {};
-  for (const eventId of eventIds) {
-    collectedEventData[eventId] = {
-      resultsForSummary: [],
-      cumulativeSuccessResult: 0, // for multi this will be points, for others just cumulative of the result and used to calculate average time with num success below
-      successVsDnfSolveCount: { success: 0, dnf: 0 }, // for multi this will be solved and unsolved cubes in the attempt (only for successful attempts)
-      bestResult: null,
-    };
-    // for multi add an extra field to count the number of successful or dnf attempts, to calculate avg number of points per attempt. Can also calculate chance of dnfing an attempt
-    if (eventId == "333mbf") {
-      collectedEventData["333mbf"].successVsDnfAttemptCount = {
-        success: 0,
-        dnf: 0,
-      };
-    }
-  }
+  const collectedEventData = initCollectedEventDataObject();
 
+  // temporary
+  const cubingChinaCompsLastWeek = await getCubingChinaComps(oneWeekAgo, today);
+  await processCubingChinaComps(cubingChinaCompsLastWeek, collectedEventData);
+
+  return;
   // get array of all comps in the last week from wca live, containing the events and round ids for each event
-  const competitionsLastWeek = (
+  const wcaLiveCompsLastWeek = (
     await fetchWCALiveQuery(compIdsQuery(formatDateToYYYYMMDD(oneWeekAgo)))
   ).data.competitions.filter((comp) =>
     isDateBeforeOrEqual(comp.endDate, formatDateToYYYYMMDD(today))
   );
 
   // loop through all comps on wca live
-  for (const comp of competitionsLastWeek) {
+  for (const comp of wcaLiveCompsLastWeek) {
     for (const event of comp.competitionEvents) {
+      // only check bld events
       if (!eventIds.has(event.event.id)) continue;
       for (const roundId of event.rounds) {
         const roundData = await fetchWCALiveQuery(roundQuery(roundId.id));
         for (const result of roundData.data.round.results) {
           const link = `https://live.worldcubeassociation.org/competitions/${comp.id}/rounds/${roundId.id}`;
-          addAttemptInfo(
+          addResultInfoWCALive(
             collectedEventData,
             result,
             event.event.id,
@@ -91,10 +62,12 @@ async function runBLDSummary() {
       }
     }
   }
+
+  // collectedEventData now contains all data from WCA Live, now need to do Cubing.com...
   console.log(JSON.stringify(collectedEventData));
 }
 
-function addAttemptInfo(
+function addResultInfoWCALive(
   collectedEventData,
   result,
   eventId,
@@ -202,6 +175,98 @@ function addAttemptInfo(
         person: { ...result.person },
       };
       collectedEventData[eventId].resultsForSummary.push(obj);
+    }
+  }
+}
+
+async function getResultsToBeat() {
+  return (
+    await readData(
+      `SELECT eventId, best, average FROM summary_results_to_beat`,
+      []
+    )
+  ).reduce((accumulator, item) => {
+    accumulator[item.eventId] =
+      item.eventId === "333mbf"
+        ? { best: decodeMbldResult(item.best), average: null }
+        : { best: item.best, average: item.average };
+    return accumulator;
+  }, {});
+}
+
+function initCollectedEventDataObject() {
+  const collectedEventData = {};
+  for (const eventId of eventIds) {
+    collectedEventData[eventId] = {
+      resultsForSummary: [],
+      cumulativeSuccessResult: 0, // for multi this will be points, for others just cumulative of the result and used to calculate average time with num success below
+      successVsDnfSolveCount: { success: 0, dnf: 0 }, // for multi this will be solved and unsolved cubes in the attempt (only for successful attempts)
+      bestResult: null,
+    };
+    // for multi add an extra field to count the number of successful or dnf attempts, to calculate avg number of points per attempt. Can also calculate chance of dnfing an attempt
+    if (eventId == "333mbf") {
+      collectedEventData["333mbf"].successVsDnfAttemptCount = {
+        success: 0,
+        dnf: 0,
+      };
+    }
+  }
+  return collectedEventData;
+}
+
+/**
+ *
+ * @param {Date()} startDate
+ * @param {Date()} endDate
+ * @returns
+ */
+async function getCubingChinaComps(startDate, endDate) {
+  // temporary setting date back for testing so there is data
+  startDate.setDate(endDate.getDate() - 50);
+  console.log(startDate, endDate);
+  const url = `https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/competitions/CN.json`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.log(`HTTP error! status: ${response.status}`);
+    return;
+  }
+  const compsArray = (await response.json())?.items.filter(
+    (comp) =>
+      new Date(comp.date.from) >= startDate &&
+      new Date(comp.date.till) <= endDate &&
+      comp.events.some((compEventId) => eventIds.has(compEventId))
+  );
+  // compsArray only contains comps in the date range and that have at least one event from eventIds
+  return compsArray;
+}
+
+async function processCubingChinaComps(
+  cubingChinaCompsLastWeek,
+  collectedEventData
+) {
+  const roundIds = ["f", "1", "2", "3"];
+  // check every comp in the list
+  for (const comp of cubingChinaCompsLastWeek) {
+    // get list of eventIds to check
+    const eventsAtThisComp = comp.events.filter((eventId) =>
+      eventIds.has(eventId)
+    );
+
+    for (const eventId of eventsAtThisComp) {
+      for (const round of roundIds) {
+        // for every round of every BLD event
+        // const link = `https://cubing.com/live/${comp.name.replaceAll(
+        //   " ",
+        //   "-"
+        // )}#!/event/${eventId}/${round}/all`;
+        // const response = await fetch(link);
+        // if (!response.ok) {
+        //   break;
+        // }
+        // const html = await response.text();
+        // console.log(html);
+        // return;
+      }
     }
   }
 }
