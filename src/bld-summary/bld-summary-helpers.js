@@ -101,6 +101,46 @@ function formatDateToYYYYMMDD(date) {
 }
 */
 
+function makeCubingChinaDataToResultObj(
+  attempts,
+  average,
+  averageRecordTag,
+  best,
+  singleRecordTag,
+  personName,
+  wcaId,
+  countryName,
+  countryIso2
+) {
+  return {
+    attempts,
+    average,
+    averageRecordTag:
+      averageRecordTag !== "WR" &&
+      averageRecordTag !== "NR" &&
+      averageRecordTag !== null
+        ? "CR"
+        : null,
+    best,
+    id: null,
+    person: {
+      country: {
+        continentName: null,
+        iso2: countryIso2,
+        name: countryName,
+      },
+      name: personName,
+      wcaId: wcaId,
+    },
+    singleRecordTag:
+      singleRecordTag !== "WR" &&
+      singleRecordTag !== "NR" &&
+      singleRecordTag !== null
+        ? "CR"
+        : null,
+  };
+}
+
 module.exports = {
   rankMbldResults,
   decodeMbldResult,
@@ -108,4 +148,5 @@ module.exports = {
   fetchWCALiveQuery,
   eventIds,
   formatDateToYYYYMMDD,
+  makeCubingChinaDataToResultObj,
 };

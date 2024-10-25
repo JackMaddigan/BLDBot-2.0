@@ -3,6 +3,7 @@
 // fetch china comps, if error continue
 // add all results to list
 const fs = require("fs");
+const puppeteer = require("puppeteer");
 
 const { readData } = require("../db");
 const {
@@ -11,8 +12,11 @@ const {
   isDateBeforeOrEqual,
   decodeMbldResult,
   rankMbldResults,
+  makeCubingChinaDataToResultObj,
 } = require("./bld-summary-helpers");
 const { compIdsQuery, roundQuery } = require("./queries");
+const { table } = require("console");
+const { toCenti } = require("../helpers/converters");
 
 const eventIds = new Set(["333bf", "444bf", "555bf", "333mbf"]);
 const recordTags = new Set(["NR", "CR", "WR"]);
@@ -32,7 +36,11 @@ async function runBLDSummary() {
 
   // temporary
   const cubingChinaCompsLastWeek = await getCubingChinaComps(oneWeekAgo, today);
-  await processCubingChinaComps(cubingChinaCompsLastWeek, collectedEventData);
+  await processCubingChinaComps(
+    cubingChinaCompsLastWeek,
+    collectedEventData,
+    resultsToBeat
+  );
 
   return;
   // get array of all comps in the last week from wca live, containing the events and round ids for each event
@@ -223,11 +231,11 @@ function initCollectedEventDataObject() {
 async function getCubingChinaComps(startDate, endDate) {
   // temporary setting date back for testing so there is data
   startDate.setDate(endDate.getDate() - 50);
-  console.log(startDate, endDate);
+  console.info(startDate, endDate);
   const url = `https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/competitions/CN.json`;
   const response = await fetch(url);
   if (!response.ok) {
-    console.log(`HTTP error! status: ${response.status}`);
+    console.error(`HTTP error! status: ${response.status}`);
     return;
   }
   const compsArray = (await response.json())?.items.filter(
@@ -242,31 +250,213 @@ async function getCubingChinaComps(startDate, endDate) {
 
 async function processCubingChinaComps(
   cubingChinaCompsLastWeek,
-  collectedEventData
+  collectedEventData,
+  resultsToBeat
 ) {
   const roundIds = ["f", "1", "2", "3"];
   // check every comp in the list
+  const browser = await puppeteer.launch();
   for (const comp of cubingChinaCompsLastWeek) {
     // get list of eventIds to check
     const eventsAtThisComp = comp.events.filter((eventId) =>
       eventIds.has(eventId)
     );
 
+    // get competitor list to get wca ids from
+    const competitorTable = await getCubingChinaTable(
+      browser,
+      `https://cubing.com/competition/${comp.name.replaceAll(
+        " ",
+        "-"
+      )}/competitors`
+    );
+    competitorTable.splice(0, 3);
+
+    // get competitor list object that has key of competitor id and value of wca id so can check wca api for PRs
+    const competitorList = competitorTable.reduce((accumulator, item) => {
+      accumulator[item[0]] = item[1].hasOwnProperty("link")
+        ? item[1].link.split("/").pop()
+        : null;
+      return accumulator;
+    }, {});
+
     for (const eventId of eventsAtThisComp) {
       for (const round of roundIds) {
         // for every round of every BLD event
-        // const link = `https://cubing.com/live/${comp.name.replaceAll(
-        //   " ",
-        //   "-"
-        // )}#!/event/${eventId}/${round}/all`;
-        // const response = await fetch(link);
-        // if (!response.ok) {
-        //   break;
-        // }
-        // const html = await response.text();
-        // console.log(html);
-        // return;
+        const link = `https://cubing.com/live/${comp.name.replaceAll(
+          " ",
+          "-"
+        )}#!/event/${eventId}/${round}/all`;
+
+        // scrape data
+        const resultsData = await getCubingChinaTable(browser, link);
+
+        // splice to get rid of the two header row things
+        resultsData.splice(0, 2);
+
+        // round out of bounds ig if == 0
+        if (resultsData.length == 0) break;
+        // Do stuff with the array of arrays of results
+        for (const result of resultsData) {
+          if (eventId === "333mbf") {
+          } else {
+            const [best, singleRecordTag] = result[3].split(" ").reverse();
+            const bestCenti = toCenti(best);
+            const [average, averageRecordTag] = result[4].split(" ").reverse();
+            const averageCenti = average.length > 0 ? toCenti(average) : -1;
+            const averageLessThanAverageToBeat =
+              averageCenti > 0 && averageCenti < resultsToBeat[eventId].average;
+            const singleLessThanSingleToBeat =
+              bestCenti > 0 && bestCenti < resultsToBeat[eventId].best;
+            const isBestResultSoFar =
+              collectedEventData[eventId].bestResult == null ||
+              (result.best > 0 &&
+                result.best < collectedEventData[eventId].bestResult?.best);
+            const isRecord = singleRecordTag || averageRecordTag;
+            const solvesInCenti = result[6]
+              .split(/\s+/)
+              .map((solve) => toCenti(solve))
+              .filter((solve) => solve !== 0);
+
+            // only check further if it meets the criteria of one possibly being less than the result to beat
+            // need to check for records too...
+            if (
+              singleLessThanSingleToBeat ||
+              averageLessThanAverageToBeat ||
+              isBestResultSoFar ||
+              isRecord
+            ) {
+              // check wca api to get PRs and data to fill out object
+              // fetch...
+
+              let iso2 = null;
+              let personData = null;
+              const personUrl = `https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/${
+                competitorList[result[1]]
+              }.json`;
+              if (competitorList[result[1]]) {
+                const personResponse = await fetch(personUrl);
+                if (!personResponse.ok) {
+                  console.error(
+                    "Error fetching person from WCA API",
+                    personResponse.status
+                  );
+                  break;
+                }
+                personData = await personResponse.json();
+                iso2 = personData.country;
+              }
+
+              // add the data from the api to the object
+              // the null stuff is temporary
+              const dataObj = makeCubingChinaDataToResultObj(
+                solvesInCenti,
+                averageCenti,
+                averageRecordTag || null,
+                bestCenti,
+                singleRecordTag || null,
+                result[2].text,
+                competitorList[result[1]],
+                result[5],
+                iso2
+              );
+              if (singleLessThanSingleToBeat) {
+                // check single against personal data to see if PR
+                const currentPRSingle =
+                  personData?.rank?.singles
+                    ?.filter((item) => item?.eventId === eventId)
+                    .pop()?.best || -1;
+                if (
+                  currentPRSingle <= 0 ||
+                  bestCenti <= currentPRSingle ||
+                  singleRecordTag
+                ) {
+                  // add to list
+                  let obj = {
+                    type: "single",
+                    recordTag: dataObj.singleRecordTag,
+                    link: link,
+                    result: dataObj.best,
+                    person: { ...dataObj.person },
+                  };
+                  collectedEventData[eventId].resultsForSummary.push(obj);
+                }
+              }
+              if (averageLessThanAverageToBeat) {
+                // check average against personal data to see if PR
+                const currentPRAverage =
+                  personData?.rank?.averages
+                    ?.filter((item) => item?.eventId === eventId)
+                    .pop()?.best || -1;
+                if (
+                  currentPRAverage <= 0 ||
+                  averageCenti <= currentPRAverage ||
+                  averageRecordTag
+                ) {
+                  // add to list
+                  let obj = {
+                    type: "average",
+                    recordTag: dataObj.averageRecordTag,
+                    link: link,
+                    result: dataObj.average,
+                    person: { ...dataObj.person },
+                  };
+                  collectedEventData[eventId].resultsForSummary.push(obj);
+                }
+              }
+              if (isBestResultSoFar) {
+                // update collectedEventData[evenId].bestResult
+                collectedEventData[eventId].bestResult = dataObj;
+              }
+            }
+            // add to statistics
+
+            for (const solve of solvesInCenti) {
+              if (solve > 0) {
+                collectedEventData[eventId].cumulativeSuccessResult += solve;
+                collectedEventData[eventId].successVsDnfSolveCount.success++;
+              } else {
+                collectedEventData[eventId].successVsDnfSolveCount.dnf++;
+              }
+            }
+          }
+        }
       }
     }
   }
+  await browser.close();
+  console.log(JSON.stringify(collectedEventData, null, 2));
+}
+
+async function getCubingChinaTable(browser, link) {
+  const page = await browser.newPage();
+
+  await page.goto(link);
+
+  await page.waitForFunction(
+    () => {
+      const loadingElement = document.querySelector(".loading"); // Adjust the selector as necessary
+      return !loadingElement || loadingElement.style.display === "none";
+    },
+    { timeout: 10000 }
+  );
+
+  // Now you can safely scrape the table content
+  const tableData = await page.evaluate(() => {
+    // Select the table within the '.table-responsive' class
+    const rows = document.querySelectorAll(".table-responsive table tr");
+
+    // Extract data from the rows (for simplicity, just getting the text content here)
+    return Array.from(rows, (row) =>
+      Array.from(row.cells, (cell) => {
+        const anchor = cell.querySelector("a"); // Find <a> elements in the cell
+        return anchor
+          ? { text: anchor.innerText, link: anchor.href }
+          : cell.innerText; // Return link and text or cell text
+      })
+    );
+  });
+
+  await page.close(); // Close the page
+  return tableData;
 }
