@@ -1,23 +1,6 @@
 const eventIds = new Set(["333bf", "444bf", "555bf", "333mbf"]);
 
 /**
- * Ranks two mbld attempts, returns number of attempt that is better (1 or 2)
- * In case of tie the first parameter should be the attempt you want to be tied and be ranked better
- * @param {object} r1 mbld object from decodeMbldResult
- * @param {object} r2 mbld object from decodeMbldResult
- * @returns 1 or 2 depending if first or second result is better
- */
-function rankMbldResults(r1, r2) {
-  if (!r2) return 1;
-  if (r1.points > r2.points) return 1;
-  if (r2.points > r1.points) return 2;
-  if (r1.seconds < r2.seconds) return 1;
-  if (r2.seconds < r1.seconds) return 2;
-  if (r1.unsolved <= r2.unsolved) return 1;
-  return 2;
-}
-
-/**
  * Decodes WCA MBLD integer into useful information
  * @param {integer} value WCA standard MBLD result
  * @returns Object of MBLD result data
@@ -141,12 +124,22 @@ function makeCubingChinaDataToResultObj(
   };
 }
 
+function mbldScoreToInfo(score) {
+  const [solved, total] = score.split("/").map((part) => Number(part));
+  return {
+    solved: solved,
+    attempted: total,
+    points: solved - (total - solved),
+    unsolved: total - solved,
+  };
+}
+
 module.exports = {
-  rankMbldResults,
   decodeMbldResult,
   isDateBeforeOrEqual,
   fetchWCALiveQuery,
   eventIds,
   formatDateToYYYYMMDD,
   makeCubingChinaDataToResultObj,
+  mbldScoreToInfo,
 };
