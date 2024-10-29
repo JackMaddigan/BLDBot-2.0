@@ -8,6 +8,10 @@ const {
   formatDateToYYYYMMDD,
 } = require("./bld-summary-helpers");
 const { compIdsQuery, roundQuery } = require("./queries");
+const SummaryObj = require("./SummaryObj");
+const emoji = require("../helpers/emojis");
+const { centiToDisplay } = require("../helpers/converters");
+const { EmbedBuilder } = require("discord.js");
 
 runSummary();
 async function runSummary() {
@@ -39,8 +43,9 @@ async function runSummary() {
     return;
   }
 
-  console.log(JSON.stringify(stats));
   // send stuff
+  const summaryEmbed = makeSummaryEmbed(stats);
+  const statsEmbed = makeStatsEmbed(stats);
 }
 
 async function processCubingChinaResults(
@@ -50,6 +55,7 @@ async function processCubingChinaResults(
   resultsToBeat
 ) {
   const comps = await getCubingChinaComps(oneWeekAgo, today);
+  console.log("China comps:s", comps);
   const roundIds = ["f", "1", "2", "3"];
   // check every comp in the list
   const browser = await puppeteer.launch();
@@ -190,10 +196,9 @@ async function getResultsToBeat() {
  * Make stats object to put the data into
  */
 function initStats() {
-  const stats = {};
+  const stats = { notify: [] };
   for (const eventId of eventIds) {
     stats[eventId] = {
-      notify: { s: [], a: [] },
       acc: 0, // for multi this will be points, for others just cumulative of the result and used to calculate average time with num success below
       svd: { s: 0, d: 0 }, // successful or dnf attempt counter
       best: null,
@@ -303,34 +308,15 @@ function addResultObjToStatistics(
   notifyAverage
 ) {
   if (notifySingle) {
-    const existingResult = stats[ro.eventId].notify.s.find(
-      (result) => result.person.wcaId === ro.person.wcaId
-    );
-    if (existingResult) {
-      // remove old result and add new one if this one is better
-      if (existingResult.best > ro.best) {
-        stats[ro.eventId].notify.s = stats[ro.eventId].notify.s.filter(
-          (result) => result.person.wcaId !== ro.person.wcaId
-        );
-        stats[ro.eventId].notify.s.push(ro);
-      }
-    } else stats[ro.eventId].notify.s.push(ro);
+    const summaryObj = new SummaryObj("s", ro);
+    addSummaryObjToNotify(summaryObj, stats);
   }
   if (notifyAverage) {
-    const existingResult = stats[ro.eventId].notify.a.find(
-      (result) => result.person.wcaId === ro.person.wcaId
-    );
-    if (existingResult) {
-      // remove old result and add new one if this one is better
-      if (existingResult.average > ro.average) {
-        stats[ro.eventId].notify.a = stats[ro.eventId].notify.a.filter(
-          (result) => result.person.wcaId !== ro.person.wcaId
-        );
-        stats[ro.eventId].notify.a.push(ro);
-      }
-    } else stats[ro.eventId].notify.a.push(ro);
+    const summaryObj = new SummaryObj("a", ro);
+    addSummaryObjToNotify(summaryObj, stats);
   }
-  if (betterThanBestSoFar) stats[ro.eventId].best = ro;
+
+  if (betterThanBestSoFar) stats[ro.eventId].best = new SummaryObj("s", ro);
   for (const attempt of ro.attempts) {
     if (attempt > 0) {
       // increment success count
@@ -361,7 +347,7 @@ function getResultStatus(ro, resultsToBeat, stats) {
   const isRecordAverage = recordTypes.includes(ro.aRT);
   const betterThanBestSoFar =
     ro.best > 0 &&
-    (ro.best < stats[ro.eventId].best?.best || !stats[ro.eventId].best);
+    (ro.best < stats[ro.eventId].best?.result || !stats[ro.eventId].best);
   const notifySingle =
     ro.best > 0 &&
     ((ro.best <= resultsToBeat[ro.eventId].best && ro.sRT) || isRecordSingle);
@@ -377,3 +363,57 @@ function getResultStatus(ro, resultsToBeat, stats) {
     notifyAverage,
   };
 }
+
+function addSummaryObjToNotify(summaryObj, stats) {
+  const existingResult = stats.notify.find(
+    (result) => result.code === summaryObj.code
+  );
+  if (existingResult) {
+    // remove old result and add new one if this one is better
+    if (existingResult.result > summaryObj.result) {
+      stats.notify = stats.notify.filter(
+        (result) => result.code !== summaryObj.code
+      );
+      stats.notify.push(summaryObj);
+    }
+  } else stats.notify.push(summaryObj);
+}
+
+function makeSummaryEmbed(stats) {
+  const eventIdToName = {
+    "333bf": "3BLD",
+    "444bf": "4BLD",
+    "555bf": "5BLD",
+    "333mbf": "MBLD",
+  };
+  const recordTypes = new Set(["NR", "CR", "WR"]);
+  stats.notify.sort((a, b) => a.compare(b));
+  const lines = [];
+  for (const r of stats.notify) {
+    let line = `${
+      recordTypes.has(r.tag) ? emoji[r.tag] + " " : ""
+    }:flag_${r.person.iso2.toLowerCase()}: ${r.person.name} ${
+      eventIdToName[r.eventId]
+    }`;
+    if (r.eventId === "333mbf") {
+      const ai = decodeMbldResult(r.result);
+      line += ` ${ai.solved}/${ai.attempted} in ${centiToDisplay(
+        ai.seconds * 100,
+        true
+      )}`;
+    } else {
+      line += ` ${r.type === "s" ? "single" : "mean"} of ${centiToDisplay(
+        r.result
+      )}`;
+    }
+    line += ` [⇥](${r.link})`;
+    lines.push(line);
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle("Weekly BLD Summary")
+    .setDescription(lines.join("\n").setColor(0x7289dd));
+  return embed;
+}
+
+function makeStatsEmbed(stats) {}
