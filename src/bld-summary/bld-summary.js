@@ -26,7 +26,7 @@ async function runSummary() {
 
   // Cubing China
   try {
-    // await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
+    await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
   } catch (error) {
     console.error("Error getting Cubing.com results!", error);
   }
@@ -39,6 +39,7 @@ async function runSummary() {
     return;
   }
 
+  console.log(JSON.stringify(stats));
   // send stuff
 }
 
@@ -139,11 +140,28 @@ async function processWCALiveResults(stats, today, oneWeekAgo, resultsToBeat) {
             r.attempts,
             r.singleRecordTag,
             r.averageRecordTag,
-            r.person.country.iso2
+            r.person.country.iso2,
+            link
           );
-          console.log(ro);
+
+          // check if record or if better than result to beat or if best result so far
+          const {
+            isRecordSingle,
+            isRecordAverage,
+            betterThanBestSoFar,
+            notifySingle,
+            notifyAverage,
+          } = getResultStatus(ro, resultsToBeat, stats);
+
+          // add to statistics
+          addResultObjToStatistics(
+            stats,
+            ro,
+            betterThanBestSoFar,
+            notifySingle,
+            notifyAverage
+          );
         }
-        return;
       }
     }
   }
@@ -240,7 +258,7 @@ async function getCubingChinaCompetitorList(browser, compId) {
 
 /**
  * Get data from a Cubing.com table
- * @param {Puppeteer browser} browser
+ * @param {puppeteer browser} browser
  * @param {string} link
  * @returns
  */
@@ -284,8 +302,34 @@ function addResultObjToStatistics(
   notifySingle,
   notifyAverage
 ) {
-  if (notifySingle) stats[ro.eventId].notify.s.push(ro);
-  if (notifyAverage) stats[ro.eventId].notify.a.push(ro);
+  if (notifySingle) {
+    const existingResult = stats[ro.eventId].notify.s.find(
+      (result) => result.person.wcaId === ro.person.wcaId
+    );
+    if (existingResult) {
+      // remove old result and add new one if this one is better
+      if (existingResult.best > ro.best) {
+        stats[ro.eventId].notify.s = stats[ro.eventId].notify.s.filter(
+          (result) => result.person.wcaId !== ro.person.wcaId
+        );
+        stats[ro.eventId].notify.s.push(ro);
+      }
+    } else stats[ro.eventId].notify.s.push(ro);
+  }
+  if (notifyAverage) {
+    const existingResult = stats[ro.eventId].notify.a.find(
+      (result) => result.person.wcaId === ro.person.wcaId
+    );
+    if (existingResult) {
+      // remove old result and add new one if this one is better
+      if (existingResult.average > ro.average) {
+        stats[ro.eventId].notify.a = stats[ro.eventId].notify.a.filter(
+          (result) => result.person.wcaId !== ro.person.wcaId
+        );
+        stats[ro.eventId].notify.a.push(ro);
+      }
+    } else stats[ro.eventId].notify.a.push(ro);
+  }
   if (betterThanBestSoFar) stats[ro.eventId].best = ro;
   for (const attempt of ro.attempts) {
     if (attempt > 0) {
@@ -318,9 +362,13 @@ function getResultStatus(ro, resultsToBeat, stats) {
   const betterThanBestSoFar =
     ro.best > 0 &&
     (ro.best < stats[ro.eventId].best?.best || !stats[ro.eventId].best);
-  const notifySingle = ro.best > 0 && ro.best <= resultsToBeat[ro.eventId].best;
+  const notifySingle =
+    ro.best > 0 &&
+    ((ro.best <= resultsToBeat[ro.eventId].best && ro.sRT) || isRecordSingle);
   const notifyAverage =
-    ro.average > 0 && ro.average <= resultsToBeat[ro.eventId].average;
+    ro.average > 0 &&
+    ((ro.average <= resultsToBeat[ro.eventId].average && ro.aRT) ||
+      isRecordAverage);
   return {
     isRecordSingle,
     isRecordAverage,
