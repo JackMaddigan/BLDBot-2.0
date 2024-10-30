@@ -10,11 +10,14 @@ const {
 const { compIdsQuery, roundQuery } = require("./queries");
 const SummaryObj = require("./SummaryObj");
 const emoji = require("../helpers/emojis");
-const { centiToDisplay } = require("../helpers/converters");
+const {
+  centiToDisplay,
+  eventIdToName,
+  toCenti,
+} = require("../helpers/converters");
 const { EmbedBuilder } = require("discord.js");
 
-runSummary();
-async function runSummary() {
+async function runSummary(client) {
   // get results to beat
   const resultsToBeat = await getResultsToBeat();
 
@@ -25,7 +28,11 @@ async function runSummary() {
   const oneWeekAgo = new Date(today);
   oneWeekAgo.setDate(today.getDate() - 7);
 
+  // const stats = JSON.parse(
+  //   `{"notify":[{"type":"a","result":2430,"person":{"name":"Jared Blanco","wcaId":"2021BLAN02","iso2":"US"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6088/rounds/81991","tag":"PR","tagIndex":3,"code":"2021BLAN02333bfa"},{"type":"s","result":47689,"person":{"name":"Vasco Vasconcelos","wcaId":"2008VASC01","iso2":"PT"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6240/rounds/84156","tag":"NR","tagIndex":2,"code":"2008VASC01444bfs"},{"type":"s","result":7105,"person":{"name":"Juan David Pérez","wcaId":"2017PERE60","iso2":"PA"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6369/rounds/85849","tag":"NR","tagIndex":2,"code":"2017PERE60333bfs"},{"type":"a","result":49632,"person":{"name":"Kevin Arturo Huamán Ruiz","wcaId":"2014RUIZ10","iso2":"PE"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6280/rounds/84717","tag":"NR","tagIndex":2,"code":"2014RUIZ10444bfa"}],"333bf":{"acc":5967230,"svd":{"s":493,"d":787},"best":{"type":"s","result":1473,"person":{"name":"Gianfranco Huanqui","wcaId":"2013HUAN29","iso2":"PE"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6280/rounds/84713","tag":null,"tagIndex":3,"code":"2013HUAN29333bfs"}},"444bf":{"acc":2613535,"svd":{"s":51,"d":124},"best":{"type":"s","result":16911,"person":{"name":"Mason Langenderfer","wcaId":"2013LANG03","iso2":"US"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6382/rounds/85984","tag":null,"tagIndex":3,"code":"2013LANG03444bfs"}},"555bf":{"acc":2643566,"svd":{"s":26,"d":81},"best":{"type":"s","result":33994,"person":{"name":"Daniel Wallin","wcaId":"2013WALL03","iso2":"SE"},"eventId":"555bf","link":"https://live.worldcubeassociation.org/competitions/6365/rounds/85788","tag":null,"tagIndex":3,"code":"2013WALL03555bfs"}},"333mbf":{"acc":297,"svd":{"s":52,"d":23},"best":{"type":"s","result":630351404,"person":{"name":"Daniel Wallin","wcaId":"2013WALL03","iso2":"SE"},"eventId":"333mbf","link":"https://live.worldcubeassociation.org/competitions/6365/rounds/85789","tag":null,"tagIndex":3,"code":"2013WALL03333mbfs"},"svu":{"s":419,"u":122}}}`
+  // );
   // make collectedEventData object
+  // /*
   const stats = initStats();
 
   // Cubing China
@@ -33,6 +40,7 @@ async function runSummary() {
     await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
   } catch (error) {
     console.error("Error getting Cubing.com results!", error);
+    return;
   }
 
   // WCA Live
@@ -43,9 +51,28 @@ async function runSummary() {
     return;
   }
 
+  // */
   // send stuff
-  const summaryEmbed = makeSummaryEmbed(stats);
-  const statsEmbed = makeStatsEmbed(stats);
+  console.log(JSON.stringify(stats));
+  try {
+    const summaryEmbed = makeSummaryEmbed(stats);
+    const recordsChannel = client.channels.cache.get(
+      process.env.recordsChannelId
+    );
+    await recordsChannel.send({ embeds: [summaryEmbed] });
+  } catch (error) {
+    console.error("Error making or sending summary embed!", error);
+    return;
+  }
+
+  try {
+    const statsEmbed = makeStatsEmbed(stats);
+    const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+    await adminChannel.send({ embeds: [statsEmbed] });
+  } catch (error) {
+    console.error("Error making or sending stats embed!", error);
+    return;
+  }
 }
 
 async function processCubingChinaResults(
@@ -77,6 +104,10 @@ async function processCubingChinaResults(
         // round "out of bounds" if == 0
         if (resultsData.length == 0) break;
         for (const r of resultsData) {
+          if (!r) {
+            console.error("0001 Error with ", r);
+            continue;
+          }
           // process result by making new result object
           const isMbld = eventId == "333mbf";
           const ro = new ResultObj();
@@ -380,12 +411,6 @@ function addSummaryObjToNotify(summaryObj, stats) {
 }
 
 function makeSummaryEmbed(stats) {
-  const eventIdToName = {
-    "333bf": "3BLD",
-    "444bf": "4BLD",
-    "555bf": "5BLD",
-    "333mbf": "MBLD",
-  };
   const recordTypes = new Set(["NR", "CR", "WR"]);
   stats.notify.sort((a, b) => a.compare(b));
   const lines = [];
@@ -412,8 +437,52 @@ function makeSummaryEmbed(stats) {
 
   const embed = new EmbedBuilder()
     .setTitle("Weekly BLD Summary")
-    .setDescription(lines.join("\n").setColor(0x7289dd));
+    .setDescription(lines.length > 0 ? lines.join("\n") : "No results / error")
+    .setColor(0x7289dd);
   return embed;
 }
 
-function makeStatsEmbed(stats) {}
+function makeStatsEmbed(stats) {
+  const lines = [];
+  for (const [key, value] of Object.entries(stats)) {
+    if (!eventIds.has(key) || !value || !value.best) continue; // stats.notify should not be included
+    lines.push(`${eventIdToName[key]}`);
+    const recordEmoji = emoji[value.best.tag];
+    let line = `Best result:\n${
+      recordEmoji ? recordEmoji + " " : ""
+    }:flag_${value.best.person.iso2.toLowerCase()}: ${value.best.person.name} `;
+
+    if (key === "333mbf") {
+      const ai = decodeMbldResult(value.best.result);
+      line += `${ai.solved}/${ai.attempted} ${centiToDisplay(
+        ai.seconds * 100,
+        true
+      )} [⇥](${value.best.link})`;
+      lines.push(line);
+      lines.push(
+        `Average points: ${
+          Math.round((value.acc / value.svd.s) * 100) / 100
+        }\nOverall MBLD: ${value.svu.s}/${value.svu.s + value.svu.u} = ${
+          value.svu.s - value.svu.u
+        } points`
+      );
+    } else {
+      line += `${centiToDisplay(value.best.result)} [⇥](${value.best.link})`;
+      lines.push(line);
+      lines.push(
+        `Average success time: ${centiToDisplay(
+          Math.round(value.acc / value.svd.s)
+        )}\nSuccess rate: ${value.svd.s}/${value.svd.s + value.svd.d} = ${
+          Math.round((value.svd.s / (value.svd.s + value.svd.d)) * 10000) / 100
+        }%\n`
+      );
+    }
+  }
+  const embed = new EmbedBuilder()
+    .setTitle("Weekly BLD Stats")
+    .setDescription(lines.join("\n") || "Error")
+    .setColor(0x7289dd);
+  return embed;
+}
+
+module.exports = runSummary;

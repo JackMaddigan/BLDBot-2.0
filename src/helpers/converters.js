@@ -50,4 +50,11 @@ function toCenti(str) {
   return centi;
 }
 
-module.exports = { centiToDisplay, toCenti };
+const eventIdToName = {
+  "333bf": "3BLD",
+  "444bf": "4BLD",
+  "555bf": "5BLD",
+  "333mbf": "MBLD",
+};
+
+module.exports = { centiToDisplay, toCenti, eventIdToName };

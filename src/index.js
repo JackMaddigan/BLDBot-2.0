@@ -14,6 +14,7 @@ const {
   eventInfo,
   eventFormatToProcessAndObj,
 } = require("./comp/comp-helpers/event-info");
+const runSummary = require("./bld-summary/bld-summary");
 
 const client = new Client({
   intents: [
@@ -26,7 +27,13 @@ const client = new Client({
 
 client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
-  await onStartUp();
+  try {
+    await onStartUp();
+    await runSummary(client);
+  } catch (error) {
+    console.error(error);
+  }
+
   // await handleWeeklyComp(client);
   // await registerCommands(client);
 });
