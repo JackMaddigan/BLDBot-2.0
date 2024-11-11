@@ -10,11 +10,7 @@ const {
 const { compIdsQuery, roundQuery } = require("./queries");
 const SummaryObj = require("./SummaryObj");
 const emoji = require("../helpers/emojis");
-const {
-  centiToDisplay,
-  eventIdToName,
-  toCenti,
-} = require("../helpers/converters");
+const { centiToDisplay, eventIdToName } = require("../helpers/converters");
 const { EmbedBuilder } = require("discord.js");
 
 async function runSummary(client) {
@@ -158,7 +154,7 @@ async function processWCALiveResults(stats, today, oneWeekAgo, resultsToBeat) {
   // fetch comps between the dates and filter for events
   const comps = (
     await fetchWCALiveQuery(compIdsQuery(formatDateToYYYYMMDD(oneWeekAgo)))
-  ).data.competitions.filter((comp) => new Date(comp.endDate) < today);
+  ).data.competitions.filter((comp) => new Date(comp.endDate) <= today);
   for (const comp of comps) {
     for (const event of comp.competitionEvents) {
       // only check bld events

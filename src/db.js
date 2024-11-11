@@ -9,7 +9,7 @@ const db = new sqlite3.Database(
 
 // db.run(`DROP TABLE IF EXISTS ee`);
 // db.run(`DROP TABLE IF EXISTS results`);
-// db.run(`DROP TABLE IF EXISTS comms`);
+// db.run(`DROP TABLE IF EXISTS records`);
 
 // Initialise results table
 db.run(`
@@ -33,8 +33,7 @@ db.run(`
 db.run(`
         CREATE TABLE IF NOT EXISTS records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            recordId Text,
-            recordTime INTEGER
+            recordId Text
         )
     `);
 
