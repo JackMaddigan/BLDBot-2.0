@@ -2,19 +2,19 @@ require("dotenv").config();
 
 const { Client, IntentsBitField } = require("discord.js");
 const { registerCommands } = require("./commands");
-const handleSubmit = require("./comp/handle-submit");
+const handleSubmit = require("./weekly-comp/submit");
 const { currentRankings } = require("./comp/rankings");
-const { handleView } = require("./comp/view");
+const handleView = require("./weekly-comp/view");
 const { handleCompCommand, handleWeeklyComp } = require("./comp/comp");
-
 const cron = require("node-cron");
-const handleUnsubmit = require("./comp/handle-unsubmit");
+const handleUnsubmit = require("./weekly-comp/unsubmit");
 const { readData } = require("./db");
 const {
   eventInfo,
   eventFormatToProcessAndObj,
 } = require("./comp/comp-helpers/event-info");
 const runSummary = require("./bld-summary/bld-summary");
+const { handleCurrentRankings } = require("./weekly-comp/results");
 
 const client = new Client({
   intents: [
@@ -27,12 +27,12 @@ const client = new Client({
 
 client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
-  try {
-    await onStartUp();
-    await runSummary(client);
-  } catch (error) {
-    console.error(error);
-  }
+  // try {
+  //   await onStartUp();
+  //   await runSummary(client);
+  // } catch (error) {
+  //   console.error(error);
+  // }
 
   // await handleWeeklyComp(client);
   // await registerCommands(client);
@@ -45,7 +45,7 @@ client.on("interactionCreate", async (int) => {
         await handleSubmit(int);
         break;
       case "cr":
-        await currentRankings(int);
+        await handleCurrentRankings(int);
         break;
       case "view":
         await handleView(int);

@@ -7,7 +7,7 @@ const emoji = require("../../helpers/emojis");
  * attempts, best, average
  */
 function processBoN(resultText, sub) {
-  const solves = resultText.split(/[ ,]+/);
+  let solves = resultText.split(/[ ,]+/);
   let errors = [];
   if (solves.length != sub.event.attempts) {
     errors.push(
@@ -23,32 +23,26 @@ function processBoN(resultText, sub) {
   }
 
   if (errors.length > 0) {
-    return [null, errors.join("\n"), null];
+    return [[], errors.join("\n"), {}];
   }
   solves = solves.map((solve) => toCenti(solve));
   const list = solves.map((solve) => centiToDisplay(solve)).join(", ");
 
-  solves.sort((a, b) => a - b).filter((item) => item > 0);
+  solves = solves.sort((a, b) => a - b).filter((item) => item > 0);
   const best = solves.length === 0 ? -1 : solves[0];
 
+  const sum = solves.reduce((acc, curr) => acc + curr, 0);
   const average =
-    solves.length === sub.event.attempts
-      ? Math.round(
-          (solves.reduce(
-            (accumulator, currentValue) => accumulator + currentValue,
-            0
-          ) /
-            solves.length) *
-            100
-        ) / 100
-      : -1;
+    solves.length === sub.event.attempts ? Math.round(sum / solves.length) : -1;
 
   const data = [list, best, average];
+  const react = best < 0 ? emoji.bldsob : null;
   const a = `Submitted a best single of **${centiToDisplay(best)}**`;
-  const b = average > 0 ? ` and a mean of **${centiToDisplay(mean)}**` : "";
+  const b = average > 0 ? ` and a mean of **${centiToDisplay(average)}**` : "";
   const c = sub.showSubmitFor ? ` for <@${sub.userId}>` : "";
   const d = best < 0 ? " " + emoji.bldsob : "";
-  const response = a + b + c + d;
+  const e = `\n(*${list}*)`;
+  const response = { text: a + b + c + d + e, react: react };
   return [data, null, response];
 }
 

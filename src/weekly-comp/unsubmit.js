@@ -1,24 +1,19 @@
 const { deleteData } = require("../db");
+const { eventShortNameToId } = require("./events");
 
 async function handleUnsubmit(int) {
-  // check user has mod permission, although this command should only be visible to mod anyway
-  const isMod = int.guild.members.cache
-    .get(int.user.id)
-    .roles.cache.has(process.env.modRoleId);
+  const isMod = int.memberPermissions.has("MANAGE_MESSAGES");
   if (!isMod) {
     await int.reply({ ephemeral: true, content: "Missing permission!" });
   }
-  // get user and eventId
   const user = int.options.getUser("user");
   if (!user) return;
-  const eventId = int.options.getString("event");
-  // remove from db
+  const eventId = eventShortNameToId(int.options.getString("event"));
 
   await deleteData(`DELETE FROM results WHERE userId=? AND eventId=?`, [
     user.id,
     eventId,
   ]);
-  // reply
   await int.reply({ ephemeral: true, content: "Removed successfully!" });
 }
 

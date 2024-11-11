@@ -1,11 +1,7 @@
 const { saveData, readData, deleteData } = require("../db");
-const {
-  eventInfo,
-  eventFormatToProcessAndObj,
-} = require("./comp-helpers/event-info");
-const { generateRankedResults } = require("./rankings");
+const { events, eventFormatToProcessAndObj } = require("./events");
+const { generateRankedResults } = require("./results");
 const cstimer = require("cstimer_module");
-
 const fs = require("fs");
 
 async function handleCompCommand(int, client) {
@@ -15,21 +11,18 @@ async function handleCompCommand(int, client) {
   else if (cmd == "end-extra-event") await endExtraEvent(int, client);
 }
 
-async function sendPodiums(client, resultsChannel, rankedResultsData, title) {
+async function sendPodiums(resultsChannel, rankedResultsData, title) {
   // make podium text
   await resultsChannel.send(title);
-  const medals = [":first_place:", ":second_place:", ":third_place:"];
   for (const eventId in rankedResultsData) {
     const results = rankedResultsData[eventId];
     // no results or first one is dnf
     if (results.length == 0 || results[0]?.isDnf) continue;
-    let text = `**${eventInfo[eventId].eventName}**\n`;
+    let text = `**${events[eventId].name}**\n`;
     for (const result of results) {
       // only include podium places
       if (result.placing > 3) break;
-      text += `${medals[result.placing - 1]} ${await client.users.fetch(
-        result.userId
-      )} ${result.toPodiumString()}\n`;
+      text += result.toPodiumString();
     }
     console.log(text);
     await resultsChannel.send(text);
@@ -42,11 +35,9 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
   for (const eventId in rankedResultsData) {
     const results = rankedResultsData[eventId];
     if (results.length == 0) continue;
-    text += `${eventInfo[eventId].eventName}\n`;
+    text += `${events[eventId].name}\n`;
     for (const result of results) {
-      text += `${result.placing} ${
-        result.username
-      } ${result.toTextFileString()}\n`;
+      text += result.toTxtFileString();
     }
   }
   console.log(text);
@@ -67,30 +58,34 @@ async function sendScrambles(client, week) {
     `<@&${process.env.weeklyCompRole}> Week ${week} Scrambles!`
   );
 
-  const eventIdsArray = Object.keys(eventInfo).filter(
+  const eventIdsArray = Object.keys(events).filter(
     (eventId) => eventId != "extra"
   );
   for (const eventId of eventIdsArray) {
-    const thisEventInfo = eventInfo[eventId];
-    if (!thisEventInfo.scrambleArgs) continue;
-    console.log(thisEventInfo);
-    if (thisEventInfo.eventId == "333mbf") {
+    const event = events[eventId];
+    if (!event.scr) continue;
+    console.log(event);
+    if (eventId == "333mbf") {
       // mbld
-      fs.writeFile("mbld.txt", cstimer.getScramble("r3ni", 75), function (err) {
-        if (err) throw err;
-        console.log("mbld.txt" + " updated!");
-      });
+      fs.writeFile(
+        "mbld.txt",
+        cstimer.getScramble(event.scr[0], event.scr[1]),
+        function (err) {
+          if (err) throw err;
+          console.log("mbld.txt" + " updated!");
+        }
+      );
       await scramblesChannel.send({
         files: ["mbld.txt"],
         content: "-\n**MBLD**",
       });
     } else {
       // 3bld 4bld 5bld
-      let text = `-\n**${thisEventInfo.eventName}**`;
-      for (let i = 0; i < thisEventInfo.numAttempts; i++) {
+      let text = `-\n**${event.name}**`;
+      for (let i = 0; i < event.attempts; i++) {
         text += `\n\n> ${i + 1}) ${cstimer.getScramble(
-          thisEventInfo.scrambleArgs[0],
-          thisEventInfo.scrambleArgs[1]
+          event.scr[0],
+          event.scr[1]
         )}`;
       }
       await scramblesChannel.send(text);
@@ -103,24 +98,16 @@ async function handleWeeklyComp(client) {
   const resultsChannel = client.channels.cache.get(
     process.env.podiumsChannelId
   );
-  // get ranked results and filter to remove extra event
   const rankedResultsData = await generateRankedResults();
   delete rankedResultsData.extra;
-  // get podium text, add title and send
   const podiumsTitle = `Week ${week} results!`;
   await sendPodiums(client, resultsChannel, rankedResultsData, podiumsTitle);
-  // make and send results file with title
   await sendResultsFile(resultsChannel, rankedResultsData);
-  // delete results where event not extra
   await deleteData(`DELETE FROM results WHERE eventId != ?`, ["extra"]);
-  // update week number
   week++;
-  // send week number to submission channel
   const submitChannel = client.channels.cache.get(process.env.submitChannelId);
   await submitChannel.send(`## Week ${week}`);
-  // send scrambles for the next week
   await sendScrambles(client, week);
-  //   save new week number to db
   await saveData(
     `INSERT INTO key_value_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
     ["week", week]
@@ -128,7 +115,7 @@ async function handleWeeklyComp(client) {
 }
 
 async function endExtraEvent(int, client) {
-  if (!eventInfo.extra.eventName) {
+  if (!events.extra.process) {
     await int.reply({
       ephemeral: true,
       content: "There is currently no extra event!",
@@ -160,13 +147,11 @@ async function endExtraEvent(int, client) {
     "extraEventInfo",
   ]);
   eventInfo.extra = {
-    eventName: null,
-    eventId: "extra",
-    eventShortName: "extra",
-    format: null,
-    numAttempts: null,
+    name: null,
     process: null,
-    resultObj: null,
+    scr: null,
+    attempts: null,
+    obj: null,
   };
 }
 
@@ -174,8 +159,7 @@ async function endExtraEvent(int, client) {
  * Handle the comp start-extra-event command and save the info to eventInfo and db
  */
 async function startExtraEvent(int) {
-  // populate eventInfo object that is exported by reference
-  if (eventInfo.extra.eventName) {
+  if (events.extra.process) {
     await int.reply({
       ephemeral: true,
       content:
@@ -184,22 +168,19 @@ async function startExtraEvent(int) {
     return;
   }
 
-  eventInfo.extra.eventName = int.options.getString("name");
-  eventInfo.extra.format = int.options.getString("format");
-  console.log(eventInfo.extra.format);
-  eventInfo.extra.numAttempts = int.options.getInteger("attempts");
-  eventInfo.extra.process =
-    eventFormatToProcessAndObj[eventInfo.extra.format].process;
-  eventInfo.extra.resultObj =
-    eventFormatToProcessAndObj[eventInfo.extra.format].resultObj;
+  events.extra.name = int.options.getString("name");
+  const format = int.options.getString("format");
+  events.extra.attempts = int.options.getInteger("attempts");
+  events.extra.process = eventFormatToProcessAndObj[format].process;
+  events.extra.obj = eventFormatToProcessAndObj[format].obj;
 
   // save extra event info to db (the functions get removed when stringifying)
   await saveData(
     `INSERT INTO key_value_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
-    ["extraEventInfo", JSON.stringify(eventInfo.extra)]
+    ["extraEventInfo", JSON.stringify(events.extra)]
   );
 
-  await int.reply(`${eventInfo.extra.eventName} is set up!`);
+  await int.reply(`${events.extra.name} is set up!`);
 }
 
 async function getWeek() {

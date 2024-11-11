@@ -4,7 +4,7 @@ const Submission = require("./Submission");
 async function handleSubmit(int) {
   const sub = new Submission(int);
 
-  if (sub.error.length > 0) {
+  if (sub.error) {
     await int.reply({ ephemeral: true, content: sub.error });
     return;
   }
@@ -20,7 +20,7 @@ async function handleSubmit(int) {
   }
 
   await saveData(
-    `INSERT INTO results (userId, username, eventId, attempts, best, average) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(userId, eventId) DO UPDATE SET username = excluded.usernmae, attempts = excluded.attempts, best = excluded.best, average = excluded.average`,
+    `INSERT INTO results (userId, username, eventId, attempts, best, average) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(userId, eventId) DO UPDATE SET username = excluded.username, attempts = excluded.attempts, best = excluded.best, average = excluded.average`,
     sub.data
   );
 }

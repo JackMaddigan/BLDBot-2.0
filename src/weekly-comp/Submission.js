@@ -1,4 +1,4 @@
-const events = require("./events");
+const { events, eventShortNameToId } = require("./events");
 
 /**
   event, eventId, username, userId, showSubmitFor, error, data, response;
@@ -17,7 +17,7 @@ class Submission {
   ephemeral = false;
 
   constructor(int) {
-    this.eventId = int.options.getSubcommandName();
+    this.eventId = eventShortNameToId[int.options.getSubcommand()];
     this.addUserInfo(int);
     this.addResultInfo(int);
   }

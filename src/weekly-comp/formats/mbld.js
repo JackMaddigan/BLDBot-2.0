@@ -42,7 +42,7 @@ function processMbld(resultText, sub) {
     } else {
       const [solved, total] = score.split("/").map((str) => Number(str));
       if (solved > total) {
-        errorMsgLines.push(`Invalid score: ${score}`);
+        errors.push(`Invalid score: ${score}`);
       }
     }
   }
@@ -56,7 +56,7 @@ function processMbld(resultText, sub) {
   }
 
   if (errors.length > 0) {
-    return [null, errors.join("\n"), null];
+    return [[], errors.join("\n"), {}];
   }
 
   const attempts = [];
@@ -66,18 +66,18 @@ function processMbld(resultText, sub) {
   const list = attempts.map((attempt) => attempt.toShortString()).join(", ");
   attempts.sort((a, b) => a.compare(b));
 
+  const best = attempts[0];
   const react = best.isDnf
     ? " " + emoji.bldsob
     : best.seconds < 3120
     ? " " + emoji.morecubes
     : null;
-  const best = attempts[0];
   const data = [list, best.num, null];
   const a = `Submitted a best result of ${best.toReplyString()}`;
   const b = react || "";
   const c = sub.showSubmitFor ? ` for <@${sub.userId}>` : "";
 
-  return [data, null, a + b + c];
+  return [data, null, { text: a + b + c, react: react }];
 }
 
 class Mbld_Attempt {
@@ -89,6 +89,7 @@ class Mbld_Attempt {
   constructor(num, score, time) {
     if (num) {
       this.num = num;
+      this.decode();
       return;
     }
     const [solved, attempted] = score.split("/").map((part) => Number(part));
@@ -106,6 +107,20 @@ class Mbld_Attempt {
     const TTTTT = this.seconds.toString().padStart(5, "0"); // seconds
     const MMM = (attempted - solved).toString().padStart(3, "0");
     this.num = Number(DDD + TTTTT + MMM);
+  }
+
+  decode() {
+    if (this.num < 0) {
+      this.isDnf = true;
+      return;
+    }
+    const missed = this.num % 1000;
+    const difference = 999 - Math.floor(this.num / 1e8);
+    this.seconds = Math.floor((this.num % 1e7) / 1000);
+    this.solved = difference + missed;
+    this.attempted = this.solved + missed;
+    this.isDnf =
+      this.solved - (this.attempted - this.solved) < 0 || this.solved <= 1;
   }
 
   compare(other) {
