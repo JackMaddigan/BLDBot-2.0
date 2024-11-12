@@ -14,6 +14,7 @@ const { handleCompCommand, handleWeeklyComp } = require("./weekly-comp/comp");
 const handleView = require("./weekly-comp/view");
 const handleUnsubmit = require("./weekly-comp/unsubmit");
 const fetchRecords = require("./records/records");
+const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
 
 const client = new Client({
   intents: [
@@ -92,17 +93,17 @@ async function onStartUp() {
   }
 }
 
-// Cron Jobs to handle weekly comp and weekly comp warning
+// weekly comp
 cron.schedule("0 1 * * 0", async () => {
   console.log("0100 Handling Comp");
   try {
-    // Handle comp
     await handleWeeklyComp(client);
   } catch (error) {
     console.error("Error Handling Comp", error);
   }
 });
 
+// weekly comp warning
 cron.schedule("0 0 * * 0", () => {
   try {
     const adminChannel = client.channels.cache.get(process.env.adminChannelId);
@@ -112,4 +113,30 @@ cron.schedule("0 0 * * 0", () => {
   }
 });
 
+// check records every hour
+cron.schedule("0 * * * *", async () => {
+  try {
+    await fetchRecords(client);
+  } catch (error) {
+    console.log("error fetching records", error);
+  }
+});
+
+// run bld summary every monday
+cron.schedule("25 5 * * MON", async () => {
+  try {
+    await runSummary(client);
+  } catch (error) {
+    console.error("Error", error);
+  }
+});
+
+// update results to beat for bld summary
+cron.schedule("0 0 * * WED", async () => {
+  try {
+    await updateResultsToBeat();
+  } catch (error) {
+    console.error("error updating results to beat", error);
+  }
+});
 client.login(process.env.token);

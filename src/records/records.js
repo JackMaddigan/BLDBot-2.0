@@ -49,7 +49,7 @@ async function fetchRecords(client) {
     if (existing) continue;
     await saveData(`INSERT INTO records (recordId, enteredAt) VALUES (?, ?)`, [
       recordId,
-      thisMinute.toISOString(),
+      thisMinute,
     ]);
     // new record
     const eventId = record.result.round.competitionEvent.event.id;
@@ -89,6 +89,14 @@ async function fetchRecords(client) {
 
     await adminChannel.send({ embeds: [embed] });
   }
+  await deleteOldRecords();
+}
+
+async function deleteOldRecords() {
+  const now = Date.now();
+  const twoHrs = 7.2e6;
+  const cutoff = now - twoHrs;
+  deleteData(`DELETE FROM records WHERE enteredAt < ?`, [cutoff]);
 }
 
 module.exports = fetchRecords;

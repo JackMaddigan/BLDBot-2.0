@@ -31,7 +31,7 @@ db.run(`
         CREATE TABLE IF NOT EXISTS records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             recordId TEXT,
-            enteredAt TEXT
+            enteredAt INTEGER
         )
     `);
 
@@ -54,7 +54,6 @@ async function saveData(query, parameters) {
           console.error(err.message);
           reject();
         }
-        console.log(`Row inserted or updated with rowid ${this.lastID}`);
         resolve();
       });
     });
