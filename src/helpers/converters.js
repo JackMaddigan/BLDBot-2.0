@@ -57,4 +57,26 @@ const eventIdToName = {
   "333mbf": "MBLD",
 };
 
-module.exports = { centiToDisplay, toCenti, eventIdToName };
+/**
+ * Decodes WCA MBLD integer into useful information
+ * @param {integer} value WCA standard MBLD result
+ * @returns Object of MBLD result data
+ */
+function decodeMbldResult(value) {
+  // 0DDTTTTTMM
+  //   get MM
+  const unsolved = value % 100;
+  // solved = difference + missed
+  const solved = 99 - Math.floor(value / 1e7) + unsolved;
+  // seconds is TTTTT so get rid of MM first then get rid of DD
+  const seconds = Math.floor(value / 100) % 1e5;
+  return {
+    solved: solved,
+    attempted: solved + unsolved,
+    points: solved - unsolved,
+    seconds: seconds,
+    unsolved: unsolved,
+  };
+}
+
+module.exports = { centiToDisplay, toCenti, eventIdToName, decodeMbldResult };

@@ -1,13 +1,13 @@
 const puppeteer = require("puppeteer");
 const { readData } = require("../db");
-const eventIds = new Set(["333bf", "444bf", "555bf", "333mbf"]);
+const { eventIds } = require("../helpers/helpers");
 const ResultObj = require("./ResultObj");
+const { decodeMbldResult } = require("./bld-summary-helpers");
 const {
-  decodeMbldResult,
   fetchWCALiveQuery,
   formatDateToYYYYMMDD,
-} = require("./bld-summary-helpers");
-const { compIdsQuery, roundQuery } = require("./queries");
+} = require("../helpers/helpers");
+const { compIdsQuery, roundQuery } = require("../queries");
 const SummaryObj = require("./SummaryObj");
 const emoji = require("../helpers/emojis");
 const { centiToDisplay, eventIdToName } = require("../helpers/converters");
@@ -24,11 +24,6 @@ async function runSummary(client) {
   const oneWeekAgo = new Date(today);
   oneWeekAgo.setDate(today.getDate() - 7);
 
-  // const stats = JSON.parse(
-  //   `{"notify":[{"type":"a","result":2430,"person":{"name":"Jared Blanco","wcaId":"2021BLAN02","iso2":"US"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6088/rounds/81991","tag":"PR","tagIndex":3,"code":"2021BLAN02333bfa"},{"type":"s","result":47689,"person":{"name":"Vasco Vasconcelos","wcaId":"2008VASC01","iso2":"PT"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6240/rounds/84156","tag":"NR","tagIndex":2,"code":"2008VASC01444bfs"},{"type":"s","result":7105,"person":{"name":"Juan David Pérez","wcaId":"2017PERE60","iso2":"PA"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6369/rounds/85849","tag":"NR","tagIndex":2,"code":"2017PERE60333bfs"},{"type":"a","result":49632,"person":{"name":"Kevin Arturo Huamán Ruiz","wcaId":"2014RUIZ10","iso2":"PE"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6280/rounds/84717","tag":"NR","tagIndex":2,"code":"2014RUIZ10444bfa"}],"333bf":{"acc":5967230,"svd":{"s":493,"d":787},"best":{"type":"s","result":1473,"person":{"name":"Gianfranco Huanqui","wcaId":"2013HUAN29","iso2":"PE"},"eventId":"333bf","link":"https://live.worldcubeassociation.org/competitions/6280/rounds/84713","tag":null,"tagIndex":3,"code":"2013HUAN29333bfs"}},"444bf":{"acc":2613535,"svd":{"s":51,"d":124},"best":{"type":"s","result":16911,"person":{"name":"Mason Langenderfer","wcaId":"2013LANG03","iso2":"US"},"eventId":"444bf","link":"https://live.worldcubeassociation.org/competitions/6382/rounds/85984","tag":null,"tagIndex":3,"code":"2013LANG03444bfs"}},"555bf":{"acc":2643566,"svd":{"s":26,"d":81},"best":{"type":"s","result":33994,"person":{"name":"Daniel Wallin","wcaId":"2013WALL03","iso2":"SE"},"eventId":"555bf","link":"https://live.worldcubeassociation.org/competitions/6365/rounds/85788","tag":null,"tagIndex":3,"code":"2013WALL03555bfs"}},"333mbf":{"acc":297,"svd":{"s":52,"d":23},"best":{"type":"s","result":630351404,"person":{"name":"Daniel Wallin","wcaId":"2013WALL03","iso2":"SE"},"eventId":"333mbf","link":"https://live.worldcubeassociation.org/competitions/6365/rounds/85789","tag":null,"tagIndex":3,"code":"2013WALL03333mbfs"},"svu":{"s":419,"u":122}}}`
-  // );
-  // make collectedEventData object
-  // /*
   const stats = initStats();
 
   // Cubing China
@@ -47,9 +42,6 @@ async function runSummary(client) {
     return;
   }
 
-  // */
-  // send stuff
-  console.log(JSON.stringify(stats));
   try {
     const summaryEmbed = makeSummaryEmbed(stats);
     const recordsChannel = client.channels.cache.get(

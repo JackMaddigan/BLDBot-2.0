@@ -13,6 +13,7 @@ const handleSubmit = require("./weekly-comp/submit");
 const { handleCompCommand, handleWeeklyComp } = require("./weekly-comp/comp");
 const handleView = require("./weekly-comp/view");
 const handleUnsubmit = require("./weekly-comp/unsubmit");
+const fetchRecords = require("./records/records");
 
 const client = new Client({
   intents: [
@@ -26,9 +27,8 @@ const client = new Client({
 client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
-    // await registerCommands(client);
     await onStartUp();
-    // await handleWeeklyComp(client);
+    await fetchRecords(client);
   } catch (error) {
     console.error(error);
   }
