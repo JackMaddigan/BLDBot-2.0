@@ -4,7 +4,7 @@ const { EmbedBuilder } = require("discord.js");
 
 async function generateRankedResults() {
   const allResults = await readData(`SELECT * FROM results`);
-
+  console.log(allResults);
   // make key value object with all event ids from the event-info file
   const eventResults = {};
   Object.keys(events).forEach((key) => (eventResults[key] = []));

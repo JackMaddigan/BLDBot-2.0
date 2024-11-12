@@ -18,13 +18,12 @@ async function sendPodiums(resultsChannel, rankedResultsData, title) {
     const results = rankedResultsData[eventId];
     // no results or first one is dnf
     if (results.length == 0 || results[0]?.isDnf) continue;
-    let text = `**${events[eventId].name}**\n`;
+    let text = `**${events[eventId].name}**`;
     for (const result of results) {
       // only include podium places
       if (result.placing > 3) break;
       text += result.toPodiumString();
     }
-    console.log(text);
     await resultsChannel.send(text);
   }
 }
@@ -40,10 +39,8 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
       text += result.toTxtFileString();
     }
   }
-  console.log(text);
   fs.writeFile("results.txt", text || "No Results", function (err) {
     if (err) throw err;
-    console.log("results.txt" + " updated!");
   });
   await resultsChannel.send({ files: ["results.txt"] });
 }
@@ -64,7 +61,6 @@ async function sendScrambles(client, week) {
   for (const eventId of eventIdsArray) {
     const event = events[eventId];
     if (!event.scr) continue;
-    console.log(event);
     if (eventId == "333mbf") {
       // mbld
       fs.writeFile(
@@ -72,7 +68,6 @@ async function sendScrambles(client, week) {
         cstimer.getScramble(event.scr[0], event.scr[1]),
         function (err) {
           if (err) throw err;
-          console.log("mbld.txt" + " updated!");
         }
       );
       await scramblesChannel.send({
@@ -101,7 +96,7 @@ async function handleWeeklyComp(client) {
   const rankedResultsData = await generateRankedResults();
   delete rankedResultsData.extra;
   const podiumsTitle = `Week ${week} results!`;
-  await sendPodiums(client, resultsChannel, rankedResultsData, podiumsTitle);
+  await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
   await sendResultsFile(resultsChannel, rankedResultsData);
   await deleteData(`DELETE FROM results WHERE eventId != ?`, ["extra"]);
   week++;
@@ -138,7 +133,7 @@ async function endExtraEvent(int, client) {
     await int.editReply("Ended with no results");
   } else {
     const podiumsTitle = `Extra event results`;
-    await sendPodiums(client, resultsChannel, rankedResultsData, podiumsTitle);
+    await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
     await sendResultsFile(resultsChannel, rankedResultsData);
   }
 
@@ -146,7 +141,7 @@ async function endExtraEvent(int, client) {
   await deleteData(`DELETE FROM key_value_store WHERE key = ?`, [
     "extraEventInfo",
   ]);
-  eventInfo.extra = {
+  events.extra = {
     name: null,
     process: null,
     scr: null,
@@ -169,10 +164,11 @@ async function startExtraEvent(int) {
   }
 
   events.extra.name = int.options.getString("name");
-  const format = int.options.getString("format");
+  events.extra.format = int.options.getString("format");
   events.extra.attempts = int.options.getInteger("attempts");
-  events.extra.process = eventFormatToProcessAndObj[format].process;
-  events.extra.obj = eventFormatToProcessAndObj[format].obj;
+  events.extra.process =
+    eventFormatToProcessAndObj[events.extra.format].process;
+  events.extra.obj = eventFormatToProcessAndObj[events.extra.format].obj;
 
   // save extra event info to db (the functions get removed when stringifying)
   await saveData(
@@ -190,7 +186,6 @@ async function getWeek() {
   );
   let week = 1; // set as default week
   if (weekData) week = weekData[0].value;
-  console.log(week);
   return week;
 }
 

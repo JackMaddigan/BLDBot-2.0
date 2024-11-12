@@ -88,14 +88,16 @@ class BoN_Result {
   }
 
   toTxtFileString() {
-    return `#${this.placing} ${this.username} ${centiToDisplay(this.best)}\n⤷(${
-      this.list
-    })${this.average > 0 ? ` Mean: ${centiToDisplay(this.average)}` : ""}`;
+    return `\n#${this.placing} ${this.username} ${centiToDisplay(
+      this.best
+    )}\n⤷(${this.list})${
+      this.average > 0 ? ` Mean: ${centiToDisplay(this.average)}` : ""
+    }`;
   }
 
   toPodiumString() {
     const medals = [":first_place:", ":second_place:", ":third_place:"];
-    return `${medals[this.placing - 1]} <@${this.userId}> **${centiToDisplay(
+    return `\n${medals[this.placing - 1]} <@${this.userId}> **${centiToDisplay(
       this.best
     )}**\n-# *(${this.list})*${
       this.average > 0 ? ` Mean: ${centiToDisplay(this.average)}` : ""

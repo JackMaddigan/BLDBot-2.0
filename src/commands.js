@@ -1,20 +1,17 @@
 const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
-const {
-  eventInfo,
-  wca_events,
-} = require("../src/comp/comp-helpers/event-info");
+const { events, wca_events } = require("../src/weekly-comp/events");
 
 async function registerCommands(client) {
   try {
     const submitCommand = new SlashCommandBuilder()
       .setName("submit")
       .setDescription("Submit results for the weekly comp!");
-    for (const eventId in eventInfo) {
-      const ei = eventInfo[eventId];
+    for (const eventId in events) {
+      const event = events[eventId];
       submitCommand.addSubcommand((sub) =>
         sub
-          .setName(ei.eventShortName)
-          .setDescription(`Submit results for ${ei.eventShortName}`)
+          .setName(event.short)
+          .setDescription(`Submit results for ${event.short}`)
           .addStringOption((option) =>
             option
               .setName("results")
@@ -43,9 +40,9 @@ async function registerCommands(client) {
           .setRequired(true)
           .setDescription("Event to unsubmit")
           .setChoices(
-            Object.values(eventInfo).map((event) => ({
-              name: event.eventShortName,
-              value: event.eventId,
+            Object.entries(events).map(([eventId, event]) => ({
+              name: event.short,
+              value: eventId,
             }))
           )
       );
@@ -117,11 +114,11 @@ async function registerCommands(client) {
               .setDescription("Format of the event")
               .setRequired(true)
               .setChoices(
-                { name: "MBLD BoX", value: "mbldbox" },
-                { name: "Timed BoX", value: "timedbox" },
-                { name: "Timed MoX", value: "timedmox" },
-                { name: "Timed AoX", value: "timedaox" },
-                { name: "FMC MoX", value: "fmcmox" }
+                { name: "MBLD", value: "mbldbon" },
+                { name: "Timed BoN", value: "timedbon" }
+                // { name: "Timed MoN", value: "timedmon" },
+                // { name: "Timed AoN", value: "timedaon" },
+                // { name: "FMC MoN", value: "fmcmon" }
               )
           )
           .addIntegerOption((option) =>

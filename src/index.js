@@ -2,19 +2,17 @@ require("dotenv").config();
 
 const { Client, IntentsBitField } = require("discord.js");
 const { registerCommands } = require("./commands");
-const handleSubmit = require("./weekly-comp/submit");
-const { currentRankings } = require("./comp/rankings");
-const handleView = require("./weekly-comp/view");
-const { handleCompCommand, handleWeeklyComp } = require("./comp/comp");
-const cron = require("node-cron");
-const handleUnsubmit = require("./weekly-comp/unsubmit");
-const { readData } = require("./db");
-const {
-  eventInfo,
-  eventFormatToProcessAndObj,
-} = require("./comp/comp-helpers/event-info");
 const runSummary = require("./bld-summary/bld-summary");
+const cron = require("node-cron");
+const { readData } = require("./db");
+
+// Weekly Comp imports
+const { eventFormatToProcessAndObj, events } = require("./weekly-comp/events");
 const { handleCurrentRankings } = require("./weekly-comp/results");
+const handleSubmit = require("./weekly-comp/submit");
+const { handleCompCommand, handleWeeklyComp } = require("./weekly-comp/comp");
+const handleView = require("./weekly-comp/view");
+const handleUnsubmit = require("./weekly-comp/unsubmit");
 
 const client = new Client({
   intents: [
@@ -27,15 +25,13 @@ const client = new Client({
 
 client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
-  // try {
-  //   await onStartUp();
-  //   await runSummary(client);
-  // } catch (error) {
-  //   console.error(error);
-  // }
-
-  // await handleWeeklyComp(client);
-  // await registerCommands(client);
+  try {
+    // await registerCommands(client);
+    await onStartUp();
+    // await handleWeeklyComp(client);
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 client.on("interactionCreate", async (int) => {
@@ -87,8 +83,9 @@ async function onStartUp() {
       const obj = JSON.parse(extraEventInfo[0].value);
       const processInfo = eventFormatToProcessAndObj[obj.format];
       obj.process = processInfo.process;
-      obj.resultObj = processInfo.resultObj;
-      eventInfo.extra = obj;
+      obj.obj = processInfo.obj;
+      events.extra = obj;
+      console.log(events.extra);
     }
   } catch (error) {
     console.error("Error loading start up data: ", error);
