@@ -7,7 +7,7 @@ const db = new sqlite3.Database(
   }
 );
 
-// db.run(`DROP TABLE IF EXISTS records`);
+// db.run(`DROP TABLE IF EXISTS comms`);
 
 db.run(`
         CREATE TABLE IF NOT EXISTS results (
@@ -36,7 +36,7 @@ db.run(`
     `);
 
 db.run(
-  `CREATE TABLE IF NOT EXISTS comms (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT)`
+  `CREATE TABLE IF NOT EXISTS comms (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT UNIQUE, content TEXT)`
 );
 
 db.run(`CREATE TABLE IF NOT EXISTS summary_results_to_beat (
@@ -86,30 +86,8 @@ function deleteData(query, parameters) {
   });
 }
 
-// async function saveComms(allMsgContent, allMsgIds) {
-//   db.serialize(() => {
-//     // Prepare the insert statement
-//     const stmt = db.prepare(
-//       "INSERT OR REPLACE INTO comms (id, content) VALUES (?, ?)"
-//     );
-
-//     // Loop through the messages and execute the insert statement for each one
-//     for (let i = 0; i < allMsgIds.length; i++) {
-//       stmt.run(allMsgIds[i], allMsgContent[i], (err) => {
-//         if (err) {
-//           console.error("Error inserting data:", err.message);
-//         }
-//       });
-//     }
-
-//     // Finalize the statement to release resources
-//     stmt.finalize();
-//   });
-// }
-
 module.exports = {
   readData,
   saveData,
   deleteData,
-  //   saveComms,
 };

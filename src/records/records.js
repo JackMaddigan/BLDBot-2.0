@@ -44,7 +44,6 @@ async function fetchRecords(client) {
           recordId,
         ])
       ).length > 0;
-    // await deleteData(`DELETE FROM records`);
 
     if (existing) continue;
     await saveData(`INSERT INTO records (recordId, enteredAt) VALUES (?, ?)`, [

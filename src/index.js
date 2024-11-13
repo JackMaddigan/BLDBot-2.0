@@ -15,6 +15,7 @@ const handleView = require("./weekly-comp/view");
 const handleUnsubmit = require("./weekly-comp/unsubmit");
 const fetchRecords = require("./records/records");
 const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
+const { handleHow, handleReadComms } = require("./comm-search/search");
 
 const client = new Client({
   intents: [
@@ -29,7 +30,6 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-    await fetchRecords(client);
   } catch (error) {
     console.error(error);
   }
@@ -52,6 +52,12 @@ client.on("interactionCreate", async (int) => {
         break;
       case "comp":
         await handleCompCommand(int, client);
+        break;
+      case "how":
+        await handleHow(int);
+        break;
+      case "read-comms":
+        await handleReadComms(int, client);
         break;
       default:
         break;
