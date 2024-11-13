@@ -7,8 +7,6 @@ const db = new sqlite3.Database(
   }
 );
 
-// db.run(`DROP TABLE IF EXISTS comms`);
-
 db.run(`
         CREATE TABLE IF NOT EXISTS results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
