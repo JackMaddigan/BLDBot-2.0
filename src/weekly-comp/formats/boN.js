@@ -90,7 +90,7 @@ class BoN_Result {
   toTxtFileString() {
     return `\n#${this.placing} ${this.username} ${centiToDisplay(
       this.best
-    )}\n⤷ (${this.list})${
+    )}\n  (${this.list})${
       this.average > 0 ? ` Mean: ${centiToDisplay(this.average)}` : ""
     }`;
   }

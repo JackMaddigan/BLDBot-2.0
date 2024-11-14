@@ -30,6 +30,7 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
+    await registerCommands(client);
   } catch (error) {
     console.error(error);
   }
@@ -68,15 +69,46 @@ client.on("interactionCreate", async (int) => {
 });
 
 client.on("messageCreate", async (msg) => {
-  if (msg.author.bot) return;
+  try {
+    if (
+      msg.author.bot ||
+      msg.channel.id !== process.env.commChannelId ||
+      msg.content.length === 0
+    )
+      return;
+    await saveData(`INSERT INTO comms (message_id, content) VALUES(?, ?)`, [
+      msg.id,
+      msg.content,
+    ]);
+    console.info(`Saved new comm ${msg.id}`);
+  } catch (error) {
+    console.error(`Error saving comm ${msg.id}`, error);
+  }
 });
 
 client.on("messageDelete", async (msg) => {
-  if (msg.author.bot) return;
+  try {
+    if (msg.author.bot || msg.channel.id !== process.env.commChannelId) return;
+    await deleteData(`DELETE FROM comms WHERE message_id=?`, [msg.id]);
+    console.info(`Deleted comm ${msg.id}`);
+  } catch (error) {
+    console.error(`Error deleting comm ${msg.id}`, error);
+  }
 });
 
-client.on("messageUpdate", async (msg) => {
-  if (msg.author.bot) return;
+client.on("messageUpdate", async (oldMsg, newMsg) => {
+  try {
+    if (newMsg.author.bot || oldMsg.channel.id !== process.env.commChannelId)
+      return;
+    await deleteData(`DELETE FROM comms WHERE message_id=?`, [oldMsg.id]);
+    if (newMsg.length > 0)
+      await saveData(`INSERT INTO comms (message_id, content) VALUES(?, ?)`, [
+        newMsg.id,
+        newMsg.content,
+      ]);
+  } catch (error) {
+    console.error(`Error updating comm ${newMsg.id}`, error);
+  }
 });
 
 async function onStartUp() {

@@ -195,7 +195,7 @@ class Mbld_Result {
 
   toPodiumString() {
     const medals = [":first_place:", ":second_place:", ":third_place:"];
-    return `${medals[this.placing - 1]} <@${
+    return `\n${medals[this.placing - 1]} <@${
       this.userId
     }> ${this.best.toInString()}
     `;

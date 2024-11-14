@@ -121,7 +121,7 @@ async function endExtraEvent(int, client) {
   const resultsChannel = client.channels.cache.get(
     process.env.resultsChannelId
   );
-  await int.deferReply({ ephemeral: true });
+  await int.deferReply({ ephemeral: false });
   // get ranked results and filter to only include extra event
   const rankedResultsData = await generateRankedResults();
   Object.keys(rankedResultsData).forEach((key) => {
@@ -148,6 +148,8 @@ async function endExtraEvent(int, client) {
     attempts: null,
     obj: null,
   };
+
+  await int.editReply("Ended");
 }
 
 /**

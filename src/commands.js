@@ -114,7 +114,7 @@ async function registerCommands(client) {
               .setDescription("Format of the event")
               .setRequired(true)
               .setChoices(
-                { name: "MBLD", value: "mbldbon" },
+                { name: "MBLD", value: "mbld" },
                 { name: "Timed BoN", value: "timedbon" }
                 // { name: "Timed MoN", value: "timedmon" },
                 // { name: "Timed AoN", value: "timedaon" },
