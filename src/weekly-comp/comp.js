@@ -186,7 +186,7 @@ async function getWeek() {
     `SELECT value FROM key_value_store WHERE key=?`,
     ["week"]
   );
-  let week = 1; // set as default week
+  let week = 95; // set as default week
   if (weekData) week = weekData[0].value;
   return week;
 }
