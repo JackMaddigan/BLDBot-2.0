@@ -9,9 +9,13 @@ const {
 } = require("../helpers/helpers");
 const { compIdsQuery, roundQuery } = require("../queries");
 const SummaryObj = require("./SummaryObj");
-const emoji = require("../helpers/emojis");
 const { centiToDisplay, eventIdToName } = require("../helpers/converters");
 const { EmbedBuilder } = require("discord.js");
+const emoji = {
+  WR: process.env.WR,
+  CR: process.env.CR,
+  NR: process.env.NR,
+};
 
 async function runSummary(client) {
   // get results to beat

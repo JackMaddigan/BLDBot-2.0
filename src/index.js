@@ -31,6 +31,7 @@ client.on("ready", async (bot) => {
   try {
     await onStartUp();
     await registerCommands(client);
+    // await handleWeeklyComp(client);
   } catch (error) {
     console.error(error);
   }

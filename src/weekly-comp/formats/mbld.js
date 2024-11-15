@@ -1,5 +1,4 @@
 const { toCenti, centiToDisplay } = require("../../helpers/converters");
-const emoji = require("../../helpers/emojis");
 
 /**
  * Validate Mbld result text, return array of [data, error, response]
@@ -68,9 +67,9 @@ function processMbld(resultText, sub) {
 
   const best = attempts[0];
   const react = best.isDnf
-    ? " " + emoji.bldsob
+    ? " " + process.env.bldsob
     : best.seconds < 3120
-    ? " " + emoji.morecubes
+    ? " " + process.env.morecubes
     : null;
   const data = [list, best.num, null];
   const a = `Submitted a best result of ${best.toReplyString()}`;

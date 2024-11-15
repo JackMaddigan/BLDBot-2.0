@@ -1,5 +1,4 @@
 const { toCenti, centiToDisplay } = require("../../helpers/converters");
-const emoji = require("../../helpers/emojis");
 
 /**
  * Validate boN result text, return array of [data, error, response]
@@ -36,11 +35,11 @@ function processBoN(resultText, sub) {
     solves.length === sub.event.attempts ? Math.round(sum / solves.length) : -1;
 
   const data = [list, best, average];
-  const react = best < 0 ? emoji.bldsob : null;
+  const react = best < 0 ? process.env.bldsob : null;
   const a = `Submitted a best single of **${centiToDisplay(best)}**`;
   const b = average > 0 ? ` and a mean of **${centiToDisplay(average)}**` : "";
   const c = sub.showSubmitFor ? ` for <@${sub.userId}>` : "";
-  const d = best < 0 ? " " + emoji.bldsob : "";
+  const d = best < 0 ? " " + process.env.bldsob : "";
   const e = `\n(*${list}*)`;
   const response = { text: a + b + c + d + e, react: react };
   return [data, null, response];
