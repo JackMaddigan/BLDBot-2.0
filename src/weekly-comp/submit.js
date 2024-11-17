@@ -15,7 +15,7 @@ async function handleSubmit(int) {
     fetchReply: true,
   });
 
-  if (sub.response.react) {
+  if (sub.response.react && !sub.showSubmitFor) {
     await reply.react(sub.response.react).catch((e) => console.error(e));
   }
 

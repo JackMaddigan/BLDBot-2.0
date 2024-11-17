@@ -1621,15 +1621,17 @@ const data = [
       "UF LB BD (L' M D M' D M D M' D L) The L' is a setup into the MD alg for UF LD BD. Due to the asymmetry of this algorithm, I prefer using something different for the inverse direction (u' l':/ for example)",
   },
 ];
+saveStuff();
+async function saveStuff() {
+  let count = 1;
+  for (const item of data) {
+    await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
+      item.id,
+      item.content,
+    ]);
+    console.log(count);
+    count++;
+  }
 
-let count = 1;
-for (const item of data) {
-  await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
-    item.id,
-    item.content,
-  ]);
-  console.log(count);
-  count++;
+  console.log("done");
 }
-
-console.log("done");
