@@ -120,7 +120,7 @@ async function handleHow(int) {
       const thisComm = isLtctSet ? `${term}${sticker}]` : `${term} ${sticker}`;
       const links = data
         .filter((item) => item.content.includes(thisComm))
-        .map((match) => `[⇥](${link}${match.message_id})`)
+        .map((match) => `[link](${link}${match.message_id})`)
         .join(" ");
       text += `${isLtctSet ? `[${sticker}]` : thisComm} ${links}\n`;
     }
