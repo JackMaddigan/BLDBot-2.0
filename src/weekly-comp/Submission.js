@@ -23,7 +23,7 @@ class Submission {
   }
 
   addUserInfo(int) {
-    const isMod = int.memberPermissions.has("MANAGE_MESSAGES");
+    const isMod = int.member.roles.cache.has(process.env.modRoleId);
     const submitForMember = int.options.getMember("submit-for");
     const member = isMod && submitForMember ? submitForMember : int.member;
     this.username = member.displayName;
