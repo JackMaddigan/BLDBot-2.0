@@ -42,7 +42,7 @@ async function registerCommands(client) {
           .setDescription("Event to unsubmit")
           .setChoices(
             Object.entries(events).map(([eventId, event]) => ({
-              name: event.short,
+              name: event.short || eventId,
               value: eventId,
             }))
           )
