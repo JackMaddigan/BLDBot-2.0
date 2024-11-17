@@ -135,6 +135,7 @@ async function endExtraEvent(int, client) {
     const podiumsTitle = `Extra event results`;
     await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
     await sendResultsFile(resultsChannel, rankedResultsData);
+    await int.editReply("Ended");
   }
 
   await deleteData(`DELETE FROM results WHERE eventId = ?`, ["extra"]);
@@ -148,8 +149,6 @@ async function endExtraEvent(int, client) {
     attempts: null,
     obj: null,
   };
-
-  await int.editReply("Ended");
 }
 
 /**

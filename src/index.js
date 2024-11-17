@@ -61,6 +61,8 @@ client.on("interactionCreate", async (int) => {
       case "read-comms":
         await handleReadComms(int, client);
         break;
+      case "scramble":
+        break;
       default:
         break;
     }
