@@ -16,6 +16,7 @@ const handleUnsubmit = require("./weekly-comp/unsubmit");
 const fetchRecords = require("./records/records");
 const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
 const { handleHow, handleReadComms } = require("./comm-search/search");
+const handleScrambleCommand = require("./scramble");
 
 const client = new Client({
   intents: [
@@ -62,6 +63,7 @@ client.on("interactionCreate", async (int) => {
         await handleReadComms(int, client);
         break;
       case "scramble":
+        await handleScrambleCommand(int);
         break;
       default:
         break;

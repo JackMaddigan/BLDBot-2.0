@@ -7,6 +7,7 @@ async function registerCommands(client) {
       .setName("submit")
       .setDescription("Submit results for the weekly comp!");
     for (const eventId in events) {
+      if (eventId === "extra") continue;
       const event = events[eventId];
       submitCommand.addSubcommand((sub) =>
         sub
