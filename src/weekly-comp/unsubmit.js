@@ -8,7 +8,7 @@ async function handleUnsubmit(int) {
   }
   const user = int.options.getUser("user");
   if (!user) return;
-  const eventId = eventShortNameToId(int.options.getString("event"));
+  const eventId = eventShortNameToId[int.options.getString("event")];
 
   await deleteData(`DELETE FROM results WHERE userId=? AND eventId=?`, [
     user.id,
