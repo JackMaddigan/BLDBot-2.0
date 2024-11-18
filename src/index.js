@@ -32,7 +32,7 @@ client.on("ready", async (bot) => {
   try {
     await onStartUp();
     await updateResultsToBeat();
-    await runSummary(client);
+    // await runSummary(client);
 
     // await registerCommands(client);
     // await handleWeeklyComp(client);
