@@ -68,7 +68,7 @@ class BoN_Result {
       return -1; // `other` is worse, so `this` should come earlier
     }
     // Both values are positive or both are <= 0, so sort normally
-    return this.best, other.best;
+    return this.best - other.best;
   }
 
   givePlacing(inFront, index) {
