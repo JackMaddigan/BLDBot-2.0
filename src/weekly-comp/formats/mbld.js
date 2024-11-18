@@ -123,6 +123,13 @@ class Mbld_Attempt {
   }
 
   compare(other) {
+    if (this.num <= 0 && other.num > 0) {
+      return 1; // `this` is worse, so it should come later
+    }
+    if (this.num > 0 && other.num <= 0) {
+      return -1; // `other` is worse, so `this` should come earlier
+    }
+    // Both values are positive or both are <= 0, so sort normally
     return this.num - other.num;
   }
 
