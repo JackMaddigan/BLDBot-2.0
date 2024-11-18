@@ -61,7 +61,14 @@ class BoN_Result {
   }
 
   compare(other) {
-    return this.best - other.best;
+    if (this.best <= 0 && other.best > 0) {
+      return 1; // `this` is worse, so it should come later
+    }
+    if (this.best > 0 && other.best <= 0) {
+      return -1; // `other` is worse, so `this` should come earlier
+    }
+    // Both values are positive or both are <= 0, so sort normally
+    return this.best, other.best;
   }
 
   givePlacing(inFront, index) {
