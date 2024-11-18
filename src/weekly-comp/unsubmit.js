@@ -5,6 +5,7 @@ async function handleUnsubmit(int) {
   const isMod = int.member.roles.cache.has(process.env.modRoleId);
   if (!isMod) {
     await int.reply({ ephemeral: true, content: "Missing permission!" });
+    return;
   }
   const user = int.options.getUser("user");
   if (!user) return;
