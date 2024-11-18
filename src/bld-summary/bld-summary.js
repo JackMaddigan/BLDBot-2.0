@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 const { readData } = require("../db");
 const { eventIds } = require("../helpers/helpers");
 const ResultObj = require("./ResultObj");
-const { decodeMbldResult } = require("./bld-summary-helpers");
+const { decodeMbldResult } = require("../helpers/converters");
 const {
   fetchWCALiveQuery,
   formatDateToYYYYMMDD,

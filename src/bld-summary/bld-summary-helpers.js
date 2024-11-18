@@ -68,7 +68,7 @@ async function updateResultsToBeat() {
       const num = eventId === "333bf" ? 99 : 24;
       if (type === "single") single = data.items[num].best;
       else average = data.items[num].best;
-      console.log(data.items[num]);
+      // console.log(data.items[num]);
     }
 
     await saveData(
