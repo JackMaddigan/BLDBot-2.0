@@ -31,6 +31,9 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
+    await updateResultsToBeat();
+    await runSummary(client);
+
     // await registerCommands(client);
     // await handleWeeklyComp(client);
   } catch (error) {
