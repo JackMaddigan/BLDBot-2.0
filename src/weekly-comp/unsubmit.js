@@ -2,7 +2,7 @@ const { deleteData } = require("../db");
 const { eventShortNameToId } = require("./events");
 
 async function handleUnsubmit(int) {
-  const isMod = int.memberPermissions.has("MANAGE_MESSAGES");
+  const isMod = int.member.roles.cache.has(process.env.modRoleId);
   if (!isMod) {
     await int.reply({ ephemeral: true, content: "Missing permission!" });
   }
