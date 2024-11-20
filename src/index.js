@@ -169,7 +169,7 @@ cron.schedule("0 * * * *", async () => {
 });
 
 // run bld summary every monday
-cron.schedule("25 5 * * MON", async () => {
+cron.schedule("0 6 * * TUE", async () => {
   try {
     await runSummary(client);
   } catch (error) {
