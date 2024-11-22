@@ -172,7 +172,7 @@ async function handleReadComms(int, client) {
           ).length > 0
         ) {
           console.log("Up to date");
-          return;
+          break;
         }
       }
       let newMsgs = await channel.messages.fetch(options);
