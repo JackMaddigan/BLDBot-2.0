@@ -4,7 +4,7 @@ const { Client, IntentsBitField } = require("discord.js");
 const { registerCommands } = require("./commands");
 const runSummary = require("./bld-summary/bld-summary");
 const cron = require("node-cron");
-const { readData } = require("./db");
+const { readData, saveData } = require("./db");
 
 // Weekly Comp imports
 const { eventFormatToProcessAndObj, events } = require("./weekly-comp/events");
