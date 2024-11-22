@@ -162,7 +162,16 @@ async function handleReadComms(int, client) {
 
     while (true) {
       const options = { limit: 100 };
-      if (lastMsgId) options.before = lastMsgId;
+      if (lastMsgId) {
+        options.before = lastMsgId;
+        if (
+          (await readData(`SELECT * FROM comms WHERE message_id=?`, [lastMsgId])
+            .length) > 0
+        ) {
+          console.log("Up to date");
+          return;
+        }
+      }
       let newMsgs = await channel.messages.fetch(options);
       if (newMsgs.size === 0) break;
 
