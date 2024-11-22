@@ -159,14 +159,17 @@ async function handleReadComms(int, client) {
     await int.deferReply({ ephemeral: true });
     const channel = await client.channels.cache.get(process.env.commChannelId);
     let lastMsgId = null;
-
+    let counter = 0;
     while (true) {
       const options = { limit: 100 };
       if (lastMsgId) {
         options.before = lastMsgId;
         if (
-          (await readData(`SELECT * FROM comms WHERE message_id=?`, [lastMsgId])
-            .length) > 0
+          (
+            await readData(`SELECT * FROM comms WHERE message_id=?`, [
+              lastMsgId,
+            ])
+          ).length > 0
         ) {
           console.log("Up to date");
           return;
@@ -176,8 +179,10 @@ async function handleReadComms(int, client) {
       if (newMsgs.size === 0) break;
 
       newMsgs.forEach(async (msg) => {
+        counter++;
+        console.log(counter);
         await saveData(
-          `INSERT INTO comms (message_id, content) VALUES (?, ?)`,
+          `INSERT INTO comms (message_id, content) VALUES (?, ?) ON CONFLICT DO NOTHING`,
           [msg.id, msg.content]
         );
       });
