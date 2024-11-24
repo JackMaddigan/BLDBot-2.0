@@ -186,7 +186,7 @@ async function getWeek() {
     ["week"]
   );
   let week = 95; // set as default week
-  if (weekData) week = weekData[0].value;
+  if (weekData.length > 0) week = weekData[0].value;
   return week;
 }
 

@@ -32,6 +32,8 @@ client.on("ready", async (bot) => {
   try {
     await onStartUp();
     await updateResultsToBeat();
+    await handleWeeklyComp(client);
+
     // await runSummary(client);
 
     // await registerCommands(client);
