@@ -13,11 +13,10 @@ async function fetchRecords(client) {
   const thisMinute = new Date(Math.floor(Date.now() / 60000) * 60000);
   let records = (await fetchWCALiveQuery(recentRecordsQuery))?.data
     .recentRecords;
-  records = records.filter((record) =>
-    eventIds.has(
-      record.result.round.competitionEvent.event.id &&
-        thisMinute - new Date(record.result.enteredAt) < 3.6e6
-    )
+  records = records.filter(
+    (record) =>
+      eventIds.has(record.result.round.competitionEvent.event.id) &&
+      thisMinute - new Date(record.result.enteredAt) < 3.6e6
   );
 
   const missingAvatar =
