@@ -196,15 +196,14 @@ class Mbld_Result {
   }
 
   toTxtFileString() {
-    return `#${this.placing} ${this.username} ${this.best.toShortString()}`;
+    return `\n#${this.placing} ${this.username} ${this.best.toShortString()}`;
   }
 
   toPodiumString() {
     const medals = [":first_place:", ":second_place:", ":third_place:"];
     return `\n${medals[this.placing - 1]} <@${
       this.userId
-    }> ${this.best.toInString()}
-    `;
+    }> ${this.best.toInString()}`;
   }
 }
 

@@ -38,7 +38,9 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
     for (const result of results) {
       text += result.toTxtFileString();
     }
+    text += "\n\n";
   }
+  text = text.trim();
   fs.writeFile("results.txt", text || "No Results", function (err) {
     if (err) throw err;
   });
