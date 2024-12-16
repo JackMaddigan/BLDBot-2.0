@@ -21,7 +21,7 @@ async function sendPodiums(resultsChannel, rankedResultsData, title) {
     let text = `**${events[eventId].name}**`;
     for (const result of results) {
       // only include podium places
-      if (result.placing > 3) break;
+      if (result.placing > 3 || result.isDnf) break;
       text += result.toPodiumString();
     }
     await resultsChannel.send(text);
