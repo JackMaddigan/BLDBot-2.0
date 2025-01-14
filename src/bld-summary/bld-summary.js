@@ -30,20 +30,19 @@ async function runSummary(client) {
 
   const stats = initStats();
 
-  // Cubing China
-  try {
-    await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
-  } catch (error) {
-    console.error("Error getting Cubing.com results!", error);
-    return;
-  }
-
   // WCA Live
   try {
     await processWCALiveResults(stats, today, oneWeekAgo, resultsToBeat);
   } catch (error) {
     console.error("Error getting WCA Live results!", error);
     return;
+  }
+
+  // Cubing China
+  try {
+    await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
+  } catch (error) {
+    console.error("Error getting Cubing.com results!", error);
   }
 
   try {
