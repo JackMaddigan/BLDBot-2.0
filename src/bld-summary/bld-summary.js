@@ -58,8 +58,10 @@ async function runSummary(client) {
 
   try {
     const statsEmbed = makeStatsEmbed(stats);
-    const adminChannel = client.channels.cache.get(process.env.adminChannelId);
-    await adminChannel.send({ embeds: [statsEmbed] });
+    const generalChannel = client.channels.cache.get(
+      process.env.generalChannelId
+    );
+    await generalChannel.send({ embeds: [statsEmbed] });
   } catch (error) {
     console.error("Error making or sending stats embed!", error);
     return;
@@ -437,9 +439,8 @@ function makeStatsEmbed(stats) {
   const lines = [];
   for (const [key, value] of Object.entries(stats)) {
     if (!eventIds.has(key) || !value || !value.best) continue; // stats.notify should not be included
-    lines.push(`${eventIdToName[key]}`);
     const recordEmoji = emoji[value.best.tag];
-    let line = `Best result:\n${
+    let line = `${eventIdToName[key]} ${
       recordEmoji ? recordEmoji + " " : ""
     }:flag_${value.best.person.iso2.toLowerCase()}: ${value.best.person.name} `;
 
@@ -449,28 +450,13 @@ function makeStatsEmbed(stats) {
         ai.seconds * 100,
         true
       )} [⇥](${value.best.link})`;
-      lines.push(line);
-      lines.push(
-        `Average points: ${
-          Math.round((value.acc / value.svd.s) * 100) / 100
-        }\nOverall MBLD: ${value.svu.s}/${value.svu.s + value.svu.u} = ${
-          value.svu.s - value.svu.u
-        } points`
-      );
     } else {
       line += `${centiToDisplay(value.best.result)} [⇥](${value.best.link})`;
-      lines.push(line);
-      lines.push(
-        `Average success time: ${centiToDisplay(
-          Math.round(value.acc / value.svd.s)
-        )}\nSuccess rate: ${value.svd.s}/${value.svd.s + value.svd.d} = ${
-          Math.round((value.svd.s / (value.svd.s + value.svd.d)) * 10000) / 100
-        }%\n`
-      );
     }
+    lines.push(line);
   }
   const embed = new EmbedBuilder()
-    .setTitle("Weekly BLD Stats")
+    .setTitle("Best results in the last week")
     .setDescription(lines.join("\n") || "Error")
     .setColor(0x7289dd);
   return embed;

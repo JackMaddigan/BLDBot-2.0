@@ -1,10 +1,10 @@
 require("dotenv").config();
 
 const { Client, IntentsBitField } = require("discord.js");
-const { registerCommands } = require("./commands");
+// const { registerCommands } = require("./commands");
 const runSummary = require("./bld-summary/bld-summary");
 const cron = require("node-cron");
-const { readData, saveData } = require("./db");
+const { readData, saveData, deleteData } = require("./db");
 
 // Weekly Comp imports
 const { eventFormatToProcessAndObj, events } = require("./weekly-comp/events");
@@ -31,7 +31,7 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-    await updateResultsToBeat();
+    // await updateResultsToBeat();
   } catch (error) {
     console.error(error);
   }
