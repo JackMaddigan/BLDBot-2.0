@@ -4,7 +4,7 @@ const { eventShortNameToId } = require("./events");
 async function handleUnsubmit(int) {
   const isMod = int.member.roles.cache.has(process.env.modRoleId);
   if (!isMod) {
-    await int.reply({ ephemeral: true, content: "Missing permission!" });
+    await int.reply({ flags: 64, content: "Missing permission!" });
     return;
   }
   const user = int.options.getUser("user");
@@ -15,7 +15,7 @@ async function handleUnsubmit(int) {
     user.id,
     eventId,
   ]);
-  await int.reply({ ephemeral: true, content: "Removed successfully!" });
+  await int.reply({ flags: 64, content: "Removed successfully!" });
 }
 
 module.exports = handleUnsubmit;

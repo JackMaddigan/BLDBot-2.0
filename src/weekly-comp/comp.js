@@ -114,7 +114,7 @@ async function handleWeeklyComp(client) {
 async function endExtraEvent(int, client) {
   if (!events.extra.process) {
     await int.reply({
-      ephemeral: true,
+      flags: 64,
       content: "There is currently no extra event!",
     });
     return;
@@ -123,7 +123,7 @@ async function endExtraEvent(int, client) {
   const resultsChannel = client.channels.cache.get(
     process.env.resultsChannelId
   );
-  await int.deferReply({ ephemeral: false });
+  await int.deferReply({ flags: 64 });
   // get ranked results and filter to only include extra event
   const rankedResultsData = await generateRankedResults();
   Object.keys(rankedResultsData).forEach((key) => {
@@ -159,7 +159,7 @@ async function endExtraEvent(int, client) {
 async function startExtraEvent(int) {
   if (events.extra.process) {
     await int.reply({
-      ephemeral: true,
+      flags: 64,
       content:
         "There is already an ongoing extra event!\nEnd the current extra event to start a new one.",
     });

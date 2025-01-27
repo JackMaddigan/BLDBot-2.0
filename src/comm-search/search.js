@@ -129,14 +129,14 @@ async function handleHow(int) {
       .setColor(0x7289dd)
       .setTitle(term)
       .setDescription(text);
-    await int.reply({ ephemeral: ephemeral, embeds: [embed] });
+    await int.reply({ flags: ephemeral ? 64 : 0, embeds: [embed] });
     return;
   }
   // not a set, just return all the matches
   for (const match of data) text += `${link}${match.message_id}\n`;
   if (text.length > 2000) text = "Too many results!";
   else if (text.length === 0) text = `No video for ${term} yet!`;
-  await int.reply({ ephemeral: ephemeral, content: text });
+  await int.reply({ flags: ephemeral ? 64 : 0, content: text });
 }
 
 function checkIfContains(chunks, sticker) {
@@ -156,7 +156,7 @@ function correctOrder(term) {
 
 async function handleReadComms(int, client) {
   try {
-    await int.deferReply({ ephemeral: true });
+    await int.deferReply({ flags: 64 });
     const channel = await client.channels.cache.get(process.env.commChannelId);
     let lastMsgId = null;
     let counter = 0;
