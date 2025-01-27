@@ -80,7 +80,7 @@ client.on("messageCreate", async (msg) => {
       msg.content.length === 0
     )
       return;
-    await saveData(`INSERT INTO comms (message_id, content) VALUES(?, ?)`, [
+    await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
       msg.id,
       msg.content,
     ]);

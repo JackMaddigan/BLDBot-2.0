@@ -66,7 +66,7 @@ const ltctRegex =
   /^(([UFRBLD]{2}\s+){2})?[UFRBLD]{3}\s+[UFRBLD]{3}\s*\[[UFRBLD]{3}\]\s*$/;
 const ltctSetRegex =
   /^(([UFRBLD]{2}\s+){2})?[UFRBLD]{3}\s+[UFRBLD]{3}\s*\[\s*$/;
-const link = `https://discord.com/channels/1005598437401698365/1159791892238712892/`;
+const link = process.env.commChannelLink;
 
 async function handleHow(int) {
   const ephemeral = int.channel.id === process.env.commChannelId;
@@ -179,8 +179,6 @@ async function handleReadComms(int, client) {
       if (newMsgs.size === 0) break;
 
       newMsgs.forEach(async (msg) => {
-        counter++;
-        console.log(counter);
         await saveData(
           `INSERT INTO comms (message_id, content) VALUES (?, ?) ON CONFLICT DO NOTHING`,
           [msg.id, msg.content]
