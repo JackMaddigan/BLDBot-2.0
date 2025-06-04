@@ -1,3 +1,4 @@
+
 const { saveData, readData, deleteData } = require("../db");
 const { events, eventFormatToProcessAndObj } = require("./events");
 const { generateRankedResults } = require("./results");
@@ -41,7 +42,7 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
     text += "\n\n";
   }
   text = text.trim();
-  fs.writeFile("results.txt", text || "No Results", function (err) {
+  fs.writeFileSync("results.txt", text || "No Results", function (err) {
     if (err) throw err;
   });
   await resultsChannel.send({ files: ["results.txt"] });
@@ -65,7 +66,7 @@ async function sendScrambles(client, week) {
     if (!event.scr) continue;
     if (eventId == "333mbf") {
       // mbld
-      fs.writeFile(
+      fs.writeFileSync(
         "mbld.txt",
         cstimer.getScramble(event.scr[0], event.scr[1]),
         function (err) {

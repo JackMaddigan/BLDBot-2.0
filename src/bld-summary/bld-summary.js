@@ -40,7 +40,7 @@ async function runSummary(client) {
 
   // Cubing China
   try {
-    await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
+//    await processCubingChinaResults(stats, today, oneWeekAgo, resultsToBeat);
   } catch (error) {
     console.error("Error getting Cubing.com results!", error);
   }

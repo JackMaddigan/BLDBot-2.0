@@ -1,0 +1,8 @@
+.env
+node_modules/
+BLDBot.log
+bldbot.db
+mbld.txt
+package-lock.json
+results.txt
+test.js
