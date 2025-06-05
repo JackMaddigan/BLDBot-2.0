@@ -17,6 +17,7 @@ const fetchRecords = require("./records/records");
 const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
 const { handleHow, handleReadComms } = require("./comm-search/search");
 const handleScrambleCommand = require("./scramble");
+const { handleHowInt, handleHowMsg } = require("./comm-search/new_search");
 
 const client = new Client({
   intents: [
@@ -56,7 +57,7 @@ client.on("interactionCreate", async (int) => {
         await handleCompCommand(int, client);
         break;
       case "how":
-        await handleHow(int);
+        await handleHowInt(int);
         break;
       case "read-comms":
         await handleReadComms(int, client);
@@ -74,17 +75,24 @@ client.on("interactionCreate", async (int) => {
 
 client.on("messageCreate", async (msg) => {
   try {
-    if (
-      msg.author.bot ||
-      msg.channel.id !== process.env.commChannelId ||
-      msg.content.length === 0
-    )
-      return;
-    await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
-      msg.id,
-      msg.content,
-    ]);
-    console.info(`Saved new comm ${msg.id}`);
+    // Do nothing with bot or empty messages
+    if (msg.author.bot || msg.content.length === 0){ return; }
+
+    // Save new comm
+    if(msg.channel.id === process.env.commChannelId){
+      await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
+        msg.id,
+        msg.content,
+      ]);
+      console.info(`Saved new comm ${msg.id}`);
+    }
+
+    // Bot command with prefix ?
+    if(msg.content.toLowerCase().startsWith("?how")){
+      msg.content = msg.content.slice(4);
+      await handleHowMsg(msg);
+    }
+    
   } catch (error) {
     console.error(`Error saving comm ${msg.id}`, error);
   }

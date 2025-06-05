@@ -1,59 +1,9 @@
 const { EmbedBuilder } = require("@discordjs/builders");
 const { readData, saveData } = require("../db");
 
-const edgePieces = new Set([
-  "UB",
-  "UR",
-  "UF",
-  "UL",
-  "LU",
-  "LF",
-  "LD",
-  "LB",
-  "FU",
-  "FR",
-  "FD",
-  "FL",
-  "RU",
-  "RB",
-  "RD",
-  "RF",
-  "BU",
-  "BL",
-  "BD",
-  "BR",
-  "DF",
-  "DR",
-  "DB",
-  "DL",
-]);
-const cornerPieces = new Set([
-  "UBL",
-  "UBR",
-  "UFR",
-  "UFR",
-  "UFL",
-  "LUB",
-  "LUF",
-  "LDF",
-  "LDB",
-  "FUL",
-  "FUR",
-  "FDR",
-  "FDL",
-  "RUF",
-  "RUB",
-  "RDB",
-  "RDF",
-  "BUR",
-  "BUL",
-  "BDL",
-  "BDR",
-  "DFL",
-  "DFR",
-  "DBR",
-  "DBL",
-]);
+const edgePieces = new Set(["UB","UR","UF","UL","LU","LF","LD","LB","FU","FR","FD","FL","RU","RB","RD","RF","BU","BL","BD","BR","DF","DR","DB","DL"]);
+const cornerPieces = new Set(["UBL","UBR","UFR","UFL","LUB","LUF","LDF","LDB","FUL","FUR","FDR","FDL","RUF","RUB","RDB","RDF","BUR","BUL","BDL","BDR","DFL","DFR","DBR","DBL"]);
+
 
 const cornerCommRegex = /^[UFRBLD]{3}\s+[UFRBLD]{3}\s+[UFRBLD]{3}\s*$/;
 const edgeCommRegex = /^[UFRBLD]{2}\s+[UFRBLD]{2}\s+[UFRBLD]{2}\s*$/;
@@ -102,21 +52,12 @@ async function handleHow(int) {
     data = data.filter((item) => !/[\[\]]/.test(item.content));
   }
   let text = "";
-  if (
-    (isCornerSet || isEdgeSet || isParitySet || isLtctSet) &&
-    data.length > 0
-  ) {
+  if ((isCornerSet || isEdgeSet || isParitySet || isLtctSet) && data.length > 0) {
     // set of options for next piece
     const set = isEdgeSet ? edgePieces : cornerPieces;
-    let orderedChunks = new Set(
-      term.split(/\s+/).map((chunk) => chunk.split("").sort().join(""))
-    );
+    let orderedChunks = new Set(term.split(/\s+/).map((chunk) => chunk.split("").sort().join("")));
     for (const sticker of set) {
-      if (
-        checkIfContains(orderedChunks, sticker) ||
-        (isLtctSet && ["U", "D"].includes(sticker[0]))
-      )
-        continue;
+      if (checkIfContains(orderedChunks, sticker) || (isLtctSet && ["U", "D"].includes(sticker[0]))){continue;}
       const thisComm = isLtctSet ? `${term}${sticker}]` : `${term} ${sticker}`;
       const links = data
         .filter((item) => item.content.includes(thisComm))
