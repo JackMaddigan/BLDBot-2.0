@@ -119,12 +119,12 @@ async function handleReadComms(int, client) {
       let newMsgs = await channel.messages.fetch(options);
       if (newMsgs.size === 0) break;
 
-      newMsgs.forEach(async (msg) => {
+      for(const msg of newMsgs.values()){
         await saveData(
           `INSERT INTO comms (message_id, content) VALUES (?, ?) ON CONFLICT DO NOTHING`,
           [msg.id, msg.content]
         );
-      });
+      }
       lastMsgId = newMsgs.last().id;
     }
     await int.editReply("done");
