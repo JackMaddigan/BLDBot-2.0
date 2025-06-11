@@ -33,83 +33,91 @@ async function handleHowMsg(msg){
 }
 
 /* Seach for a term, return either an embed or text response to send back to client */
-async function search(term){
+async function search(rawTerm){
   // lists of the piece types
   const edgePieces = ["UB","UR","UF","UL","LU","LF","LD","LB","FU","FR","FD","FL","RU","RB","RD","RF","BU","BL","BD","BR","DF","DR","DB","DL"];
   const cornerPieces = ["UBL","UBR","UFR","UFL","LUB","LUF","LDF","LDB","FUL","FUR","FDR","FDL","RUF","RUB","RDB","RDF","BUR","BUL","BDL","BDR","DFL","DFR","DBR","DBL"];
   
   // In a string because it goes in the glob pattern
   const ls = "[UFRBLDufrbld]";
-
   let commTypes = [
     { 
       // Single Corner Comm
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{3}\s+[UFRBLD]{3}\s+[UFRBLD]{3}\s*$/, 
       setLastTerms: null,
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(correctOrder(rawTerm))}*`, 
       filterData: null
     },
     {
       // Single Edge Comm
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{2}\s+[UFRBLD]{2}\s+[UFRBLD]{2}\s*$/,
       setLastTerms: null,
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(rawTerm)}*`, 
       filterData: null 
     },
     {
       // Corners Set
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{3}\s+[UFRBLD]{3}\s*$/,
       setLastTerms: cornerPieces,
-      glob: `*${correctOrder(term)} ${ls}${ls}${ls}[( ]*`, 
+      glob: `*${correctOrder(rawTerm)} ${ls}${ls}${ls}[( ]*`, 
       filterData: null 
     },
     {
       // Edges Set
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{2}\s+[UFRBLD]{2}\s*$/,
       setLastTerms: edgePieces,
-      glob: `*${correctOrder(term)} ${ls}${ls}[( ]*`, 
+      glob: `*${correctOrder(rawTerm)} ${ls}${ls}[( ]*`, 
       filterData: null 
     },
     {
       // Single Parity case (needs to be included due to the filter for square brackets)
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{2}\s+[UFRBLD]{2}\s+[UFRBLD]{3}\s+[UFRBLD]{3}\s*$/,
       setLastTerms: null,
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(rawTerm)}*`, 
       filterData: (data) => data.filter((row) => !/[\[\]]/.test(row.content))
     },
     {
       // Parity Set
+      term: correctOrder(rawTerm),
       rx: /^[UFRBLD]{2}\s+[UFRBLD]{2}\s+[UFRBLD]{3}\s*$/,
       setLastTerms: cornerPieces,
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(rawTerm)}*`, 
       filterData: (data) => data.filter((row) => !/[\[\]]/.test(row.content))
     },
     {
       // Single LTCT case (needs to be included due to the glob)
+      term: correctOrder(rawTerm),
       rx: /^(([UFRBLD]{2}\s+){2})?[UFRBLD]{3}\s+[UFRBLD]{3}\s*\[[UFRBLD]{3}\]\s*$/,
       setLastTerms: null,
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(rawTerm)}*`, 
       filterData: null
     },
     {
       // LTCT Set
+      term: correctOrder(rawTerm),
       rx: /^(([UFRBLD]{2}\s+){2})?[UFRBLD]{3}\s+[UFRBLD]{3}\s*\[\s*$/,
       setLastTerms: cornerPieces.filter(sticker => ["U", "D"].includes(sticker[0])),
-      glob: `*${correctOrder(term)}*`, 
+      glob: `*${correctOrder(rawTerm)}*`, 
       filterData: null
     },
     {
       // Default (Search for anything)
+      term: rawTerm,
       rx: /^.+$/,
       setLastTerms: null,
-      glob: `*${term}*`, 
+      glob: `*${rawTerm}*`, 
       filterData: null
     }
   ];
 
-  for(const { rx, setLastTerms, glob, filterData } of commTypes){
+  for(const { rx, setLastTerms, glob, filterData, term } of commTypes){
     if(!rx.test(term)){ continue; }
-
+    console.log(glob);
     // term matches regex, so read from the db
     let data = await readData(`SELECT * FROM comms WHERE content GLOB ? LIMIT 50`, [ glob ]);
 
@@ -118,7 +126,7 @@ async function search(term){
 
     // Make either an embed or text response depending on if setLastTerms is provided
     const embedResponse = setLastTerms ? makeSetEmbedResponse(data, setLastTerms, term) : null;
-    const textResponse = setLastTerms ? null : makeTextResponse(data);
+    const textResponse = setLastTerms ? null : makeTextResponse(data, term);
 
     return { embedResponse, textResponse };
   }
@@ -154,7 +162,7 @@ function checkIfContains(chunks, sticker) {
   return chunks.has(orderedSticker);
 }
 
-function makeTextResponse(data){
+function makeTextResponse(data, term){
   let text = "";
   for (const match of data) {text += `${process.env.commChannelLink}${match.message_id}\n`;}
   if (text.length > 2000) text = "Too many results!";
@@ -171,6 +179,12 @@ function correctOrder(term) {
     }
   );
 }
+
+function testCorrectOrder(){
+  console.log(correctOrder("URB"));
+}
+
+testCorrectOrder();
 
 module.exports = {
   handleHowInt, handleHowMsg
