@@ -103,6 +103,7 @@ async function handleReadComms(int, client) {
     let counter = 0;
     while (true) {
       const options = { limit: 100 };
+      options.before = lastMsgId;
       // if (lastMsgId) {
       //   options.before = lastMsgId;
       //   if (
