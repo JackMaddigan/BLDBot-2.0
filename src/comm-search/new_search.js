@@ -117,7 +117,6 @@ async function search(rawTerm){
 
   for(const { rx, setLastTerms, glob, filterData, term } of commTypes){
     if(!rx.test(term)){ continue; }
-    console.log(glob);
     // term matches regex, so read from the db
     let data = await readData(`SELECT * FROM comms WHERE content GLOB ? LIMIT 50`, [ glob ]);
 
@@ -179,12 +178,6 @@ function correctOrder(term) {
     }
   );
 }
-
-function testCorrectOrder(){
-  console.log(correctOrder("URB"));
-}
-
-testCorrectOrder();
 
 module.exports = {
   handleHowInt, handleHowMsg
