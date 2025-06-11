@@ -121,9 +121,11 @@ async function handleReadComms(int, client) {
 
       for(const msg of newMsgs.values()){
         await saveData(
-          `INSERT INTO comms (message_id, content) VALUES (?, ?) ON CONFLICT DO NOTHING`,
+          `INSERT INTO comms (message_id, content) VALUES (?, ?) ON CONFLICT DO UPDATE SET content=excluded.content`,
           [msg.id, msg.content]
         );
+        counter++;
+        console.log(counter);
       }
       lastMsgId = newMsgs.last().id;
     }
