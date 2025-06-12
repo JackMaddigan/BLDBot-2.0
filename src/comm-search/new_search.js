@@ -15,7 +15,7 @@ async function handleHowInt(int){
     await int.reply({embeds: [embedResponse], flags: ephemeral ? 64 : 0});
   }else {
     // reply with text
-    await int.reply(textResponse);
+    await int.reply({content: textResponse, flags: ephemeral ? 64 : 0});
   }
 }
 
