@@ -18,6 +18,7 @@ const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
 const { handleHow, handleReadComms } = require("./comm-search/search");
 const handleScrambleCommand = require("./scramble");
 const { handleHowInt, handleHowMsg } = require("./comm-search/new_search");
+const { registerCommands } = require("./commands");
 
 const client = new Client({
   intents: [
@@ -32,7 +33,8 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-   // await handleWeeklyComp(client);
+    await registerCommands(client);
+  //  await handleWeeklyComp(client);
   } catch (error) {
     console.error(error);
   }

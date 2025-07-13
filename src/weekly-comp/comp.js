@@ -8,10 +8,55 @@ const fs = require("fs");
 async function handleCompCommand(int, client) {
   // handle command
   const cmd = int.options.getSubcommand();
-  if (cmd == "start-extra-event") await startExtraEvent(int);
-  else if (cmd == "end-extra-event") await endExtraEvent(int, client);
+  if (cmd == "start-extra-event") { await startExtraEvent(int); }
+  else if (cmd == "end-extra-event") { await endExtraEvent(int, client); }
+  else if(cmd === "clear-results") { 
+    await int.deferReply();
+    await deleteData(`DELETE FROM results`, []);
+    await int.editReply("Done");
+  } 
+  else if(cmd === "post-results") { 
+    await int.deferReply();
+    await postResults(client); 
+    await int.editReply("Done");
+  }
+  else if(cmd === "send-scrambles") { 
+    await int.deferReply();
+    await postNewWeek(client);
+    await int.editReply("Done");
+  }
 }
 
+// Post scrambles and update the week
+async function postNewWeek(client){
+  // get current week and increment before sending
+  let week = await getWeek();
+  week++;
+  await sendScrambles(client, week);
+  // send week to submission channel
+  const submitChannel = client.channels.cache.get(process.env.submitChannelId);
+  await submitChannel.send(`## Week ${week}`);
+  // save the new week
+  await saveData(
+    `INSERT INTO key_value_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
+    ["week", week]
+  );
+}
+
+// Post results
+async function postResults(client){
+  const rankedResultsData = await generateRankedResults();
+  let week = await getWeek();
+  delete rankedResultsData.extra;
+  const podiumsTitle = `Week ${week} results!`;
+  const resultsChannel = client.channels.cache.get(
+    process.env.podiumsChannelId
+  );
+  await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
+  await sendResultsFile(resultsChannel, rankedResultsData);
+}
+
+// Send podiums as called by postResults
 async function sendPodiums(resultsChannel, rankedResultsData, title) {
   // make podium text
   await resultsChannel.send(title);
@@ -29,6 +74,7 @@ async function sendPodiums(resultsChannel, rankedResultsData, title) {
   }
 }
 
+// Send results file as called by postResults
 async function sendResultsFile(resultsChannel, rankedResultsData) {
   // make results file
   let text = "";
@@ -48,6 +94,7 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
   await resultsChannel.send({ files: ["results.txt"] });
 }
 
+// Send scrambles as called by postNewWeek
 async function sendScrambles(client, week) {
   // get event ids excluding extra event
   const scramblesChannel = client.channels.cache.get(
@@ -91,25 +138,11 @@ async function sendScrambles(client, week) {
   }
 }
 
+// Parent function to handle the comp
 async function handleWeeklyComp(client) {
-  let week = await getWeek();
-  const resultsChannel = client.channels.cache.get(
-    process.env.podiumsChannelId
-  );
-  const rankedResultsData = await generateRankedResults();
-  delete rankedResultsData.extra;
-  const podiumsTitle = `Week ${week} results!`;
-  await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
-  await sendResultsFile(resultsChannel, rankedResultsData);
+  await postResults(client);
+  await postNewWeek(client);
   await deleteData(`DELETE FROM results WHERE eventId != ?`, ["extra"]);
-  week++;
-  const submitChannel = client.channels.cache.get(process.env.submitChannelId);
-  await submitChannel.send(`## Week ${week}`);
-  await sendScrambles(client, week);
-  await saveData(
-    `INSERT INTO key_value_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
-    ["week", week]
-  );
 }
 
 async function endExtraEvent(int, client) {
@@ -188,8 +221,7 @@ async function getWeek() {
     `SELECT value FROM key_value_store WHERE key=?`,
     ["week"]
   );
-  let week = 95; // set as default week
-  if (weekData.length > 0) week = weekData[0].value;
+  const week = weekData.length ? weekData[0].value : 95;
   return week;
 }
 

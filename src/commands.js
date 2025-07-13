@@ -117,9 +117,6 @@ async function registerCommands(client) {
               .setChoices(
                 { name: "MBLD", value: "mbld" },
                 { name: "Timed BoN", value: "timedbon" }
-                // { name: "Timed MoN", value: "timedmon" },
-                // { name: "Timed AoN", value: "timedaon" },
-                // { name: "FMC MoN", value: "fmcmon" }
               )
           )
           .addIntegerOption((option) =>
@@ -128,6 +125,18 @@ async function registerCommands(client) {
               .setDescription("Number of solves or attempts")
               .setRequired(true)
           )
+      ).addSubcommand((sub) =>
+        sub
+          .setName("clear-results")
+          .setDescription("Clear all current results")
+      ).addSubcommand((sub) =>
+        sub
+          .setName("post-results")
+          .setDescription("Post current results")
+      ).addSubcommand((sub) =>
+        sub
+          .setName("send-scrambles")
+          .setDescription("Post new week and scrambles")
       );
 
     // Register the slash commands
