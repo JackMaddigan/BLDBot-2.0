@@ -33,7 +33,7 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-    await registerCommands(client);
+    // await registerCommands(client);
   //  await handleWeeklyComp(client);
   } catch (error) {
     console.error(error);
@@ -114,8 +114,9 @@ client.on("messageUpdate", async (oldMsg, newMsg) => {
   try {
     if (newMsg.author.bot || oldMsg.channel.id !== process.env.commChannelId)
       return;
+    console.info(`Editing comm from ${oldMsg.content} to ${newMsg.content}`);
     await deleteData(`DELETE FROM comms WHERE message_id=?`, [oldMsg.id]);
-    if (newMsg.length > 0)
+    if (newMsg.content.length > 0)
       await saveData(`INSERT INTO comms (message_id, content) VALUES(?, ?)`, [
         newMsg.id,
         newMsg.content,
