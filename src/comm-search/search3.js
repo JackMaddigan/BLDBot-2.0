@@ -99,7 +99,14 @@ class CornerSet extends QueryCubeTerm {
 }
 
 
-class CornerComm {}
+class CornerComm extends QueryCubeTerm {
+  constructor(term){
+    super(term.split(/\s+/g).map(CorrectOrder.Corners_Edges), Stickers.corners);
+    this.glob = `*${this.termStickers.join(" ")}*`;
+  }
+  async search(){ throw new Error("Implement Term.of(QueryTerm.fetch(this.glob)) to return just a single comm or term as a link"); }
+}
+
 class EdgeComm {}
 class Parity3BLD {}
 class Parity3BLDSet {}
