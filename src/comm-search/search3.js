@@ -58,10 +58,23 @@ class QueryTerm {
   async search(){ throw new Error("Async Search method not implemented for this termType!"); }
 }
 
-// TODO
 class CubeSet {
-  static embedOf(data){
-    return null;
+  static embedOf(data, queryCubeTerm){
+    let text = "";
+    const set = queryCubeTerm.setStickers.join(" ");
+    for(const sticker of queryCubeTerm.setStickers){
+      const thisComm = `${set} ${sticker}`;
+      const links = data
+        .filter((item) => item.content.includes(thisComm))
+        .map((match) => `[link](${process.env.commChannelLink}${match.message_id})`)
+        .join(" ");
+      text += `${thisComm} ${links}\n`;
+    }
+    if (text.length > 4096) text = "Too many results!";
+    return new EmbedBuilder()
+      .setColor(0x7289dd)
+      .setTitle(set)
+      .setDescription(text);
   }
 }
 
@@ -82,10 +95,7 @@ class CornerSet extends QueryCubeTerm {
     super(term.split(/\s+/g).map(CorrectOrder.Corners_Edges), Stickers.corners);
     this.glob = `*${this.termStickers.join(" ")} ${Stickers.face}${Stickers.face}${Stickers.face}[( ]*`;
   }
-  async search(){
-    const data = QueryTerm.fetch(this.glob);
-    return Set.embedOf(data);
-  }
+  async search(){ return Set.embedOf((await QueryTerm.fetch(this.glob)), this); }
 }
 
 
