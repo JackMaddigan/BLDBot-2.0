@@ -1,10 +1,9 @@
 const { EmbedBuilder } = require("discord.js");
 const { readData } = require("../db");
-require("dotenv").config();
 
 async function handleHowInt(int) {
-  const flags = int.channel.id === process.env.commChannelId ? 64 : 0;
-  await int.deferReply({flags});
+  console.log(int.channel.id, process.env.commChannelId);
+  await int.deferReply({flags: int.channel.id === process.env.commChannelId ? 64 : 0});
   const payload = await Query.of(int.options.getString("find"));
   payload.flags = flags;
   await int.editReply(payload);
