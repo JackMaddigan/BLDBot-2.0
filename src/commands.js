@@ -55,6 +55,10 @@ async function registerCommands(client) {
         option.setName("find").setRequired(true).setDescription("Search for...")
       );
 
+    const howHelpCommand = new SlashCommandBuilder()
+      .setName("video-search-help")
+      .setDescription("Get help using /how");
+
     const readCommsCommand = new SlashCommandBuilder()
       .setName("read-comms")
       .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
@@ -148,6 +152,7 @@ async function registerCommands(client) {
       weeklyCompCommand,
       scrambleCommand,
       howCommand,
+      howHelpCommand,
       readCommsCommand,
     ]);
     console.log("Slash commands registered successfully.");
