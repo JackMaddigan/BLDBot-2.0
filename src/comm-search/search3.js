@@ -5,7 +5,6 @@ async function handleHowInt(int) {
   console.log(int.channel.id, process.env.commChannelId);
   await int.deferReply({flags: int.channel.id === process.env.commChannelId ? 64 : 0});
   const payload = await Query.of(int.options.getString("find"));
-  payload.flags = flags;
   await int.editReply(payload);
 }
 
