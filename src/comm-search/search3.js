@@ -2,10 +2,9 @@ const { EmbedBuilder, MessageFlags } = require("discord.js");
 const { readData } = require("../db");
 
 async function handleHowInt(int) {
-  console.log(typeof process.env.commChannelId, typeof int.channel.id, int.channel.id === process.env.commChannelId);
-  await int.deferReply({flags: int.channel.id === process.env.commChannelId ? MessageFlags.Ephemeral : 0});
   const payload = await Query.of(int.options.getString("find"));
-  await int.editReply(payload);
+  payload.flags = int.channel.id === process.env.commChannelId ? MessageFlags.Ephemeral : 0;
+  await int.reply(payload);
 }
 
 async function handleHowMsg(msg){
