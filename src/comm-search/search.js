@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("@discordjs/builders");
-const { readData, saveData } = require("../db");
+const { readData, saveData, deleteData } = require("../db");
 
 const edgePieces = new Set(["UB","UR","UF","UL","LU","LF","LD","LB","FU","FR","FD","FL","RU","RB","RD","RF","BU","BL","BD","BR","DF","DR","DB","DL"]);
 const cornerPieces = new Set(["UBL","UBR","UFR","UFL","LUB","LUF","LDF","LDB","FUL","FUR","FDR","FDL","RUF","RUB","RDB","RDF","BUR","BUL","BDL","BDR","DFL","DFR","DBR","DBL"]);
@@ -101,6 +101,7 @@ async function handleReadComms(int, client) {
     const channel = await client.channels.cache.get(process.env.commChannelId);
     let lastMsgId = null;
     let counter = 0;
+    await deleteData(`DELETE FROM comms`);
     while (true) {
       const options = { limit: 100 };
       options.before = lastMsgId;
