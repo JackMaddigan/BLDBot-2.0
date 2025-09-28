@@ -33,8 +33,7 @@ client.on("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-    // await registerCommands(client);
-  //  await handleWeeklyComp(client);
+    await registerCommands(client);
   } catch (error) {
     console.error(error);
   }

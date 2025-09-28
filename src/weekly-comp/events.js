@@ -7,7 +7,7 @@ const events = {
     short: "3bld",
     process: processBoN,
     scr: ["333ni", "0"],
-    attempts: 3,
+    attempts: 5,
     obj: BoN_Result,
   },
   "444bf": {
