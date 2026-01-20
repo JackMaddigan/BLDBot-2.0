@@ -420,7 +420,7 @@ function makeSummaryEmbed(stats) {
         true
       )}`;
     } else {
-      line += ` ${r.type === "s" ? "single" : "mean"} of ${centiToDisplay(
+      line += ` ${r.type === "s" ? "single" : "average"} of ${centiToDisplay(
         r.result
       )}`;
     }

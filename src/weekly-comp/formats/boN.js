@@ -27,20 +27,37 @@ function processBoN(resultText, sub) {
   solves = solves.map((solve) => toCenti(solve));
   const list = solves.map((solve) => centiToDisplay(solve)).join(", ");
 
+  const bads = solves.filter(s => s < 0).sort((a, b) => b-a);
+  const goods = solves.filter(s => s >= 0).sort((a, b) => a-b);
+  const ordered = goods.concat(bads);
+
+  const calcAo5 = () => {
+    const counting = ordered.slice(1, -1);
+    return calcMean(counting);
+  }
+  const calcMean = (ss) => {
+    return ss.some((c) => c < 0)
+      ? -1
+      : Math.round(ss.reduce((acc, cur) => acc + cur, 0) / ss.length);
+  };
+  const average = sub.event.attempts === 5 ? calcAo5() : calcMean(ordered);
+
+
   solves = solves.sort((a, b) => a - b).filter((item) => item > 0);
   const best = solves.length === 0 ? -1 : solves[0];
 
-  const sum = solves.reduce((acc, curr) => acc + curr, 0);
-  const average =
-    solves.length === sub.event.attempts ? Math.round(sum / solves.length) : -1;
+  // const sum = solves.reduce((acc, curr) => acc + curr, 0);
+  
+  // const average =
+  //   solves.length === sub.event.attempts ? Math.round(sum / solves.length) : -1;
 
   const data = [list, best, average];
   const react = best < 0 ? process.env.bldsob : null;
   const a = `Submitted a best single of **${centiToDisplay(best)}**`;
-  const b = average > 0 ? ` and a mean of **${centiToDisplay(average)}**` : "";
+  const b = average > 0 ? ` and an average of **${centiToDisplay(average)}**` : "";
   const c = sub.showSubmitFor ? ` for <@${sub.userId}>` : "";
   const d = best < 0 ? " " + process.env.bldsob : "";
-  const e = `\n(*${list}*)`;
+  const e = `\n||(*${list}*)||`;
   const response = { text: a + b + c + d + e, react: react };
   return [data, null, response];
 }
