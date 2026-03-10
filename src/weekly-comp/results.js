@@ -40,6 +40,7 @@ async function generateRankedResults() {
 }
 
 async function handleCurrentRankings(int) {
+  await int.deferReply({flags: 64});
   const rankedResults = await generateRankedResults();
   let text = "";
   for (const [eventId, eventResults] of Object.entries(rankedResults)) {
@@ -54,7 +55,7 @@ async function handleCurrentRankings(int) {
     .setTitle("Current Weekly Comp Rankings")
     .setDescription(text.length === 0 ? "No results yet!" : text)
     .setColor(0x7289dd);
-  await int.reply({ flags: 64, embeds: [embed] });
+  await int.editReply({ flags: 64, embeds: [embed] });
 }
 
 module.exports = { handleCurrentRankings, generateRankedResults };
