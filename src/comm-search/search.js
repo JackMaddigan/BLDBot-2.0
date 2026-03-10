@@ -98,7 +98,7 @@ function correctOrder(term) {
 async function handleReadComms(int, client) {
   try {
     await int.deferReply({ flags: 64 });
-    const channel = await client.channels.cache.get(process.env.commChannelId);
+    const channel = await client.channels.fetch(process.env.commChannelId);
     let lastMsgId = null;
     let counter = 0;
     await deleteData(`DELETE FROM comms`);

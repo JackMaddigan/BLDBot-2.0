@@ -29,11 +29,11 @@ const client = new Client({
   ],
 });
 
-client.on("ready", async (bot) => {
+client.once("ready", async (bot) => {
   console.log(bot.user.username + " is online!");
   try {
     await onStartUp();
-    await registerCommands(client);
+    // await registerCommands(client);
   } catch (error) {
     console.error(error);
   }
@@ -65,6 +65,7 @@ client.on("interactionCreate", async (int) => {
         break;
       case "scramble":
         await handleScrambleCommand(int);
+        break;
       case "video-search-help":
         await handleHowHelpInt(int);
         break;
@@ -149,7 +150,7 @@ async function onStartUp() {
 
 // weekly comp
 cron.schedule("0 1 * * 0", async () => {
-  console.log("0100 Handling Comp");
+  console.log("Handling Comp");
   try {
     await handleWeeklyComp(client);
   } catch (error) {
@@ -158,9 +159,13 @@ cron.schedule("0 1 * * 0", async () => {
 });
 
 // weekly comp warning
-cron.schedule("0 0 * * 0", () => {
+cron.schedule("0 0 * * 0", async () => {
   try {
-    const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+    console.info('Weekly comp warning');
+    const adminChannel = await client.channels.fetch(process.env.adminChannelId);
+    if(!adminChannel) {
+      return console.error('Weekly comp warning - admin channel was null');
+    }
     adminChannel.send("Results and new scrambles will be posted in one hour!");
   } catch (error) {
     console.error("Error", error);
@@ -179,18 +184,21 @@ cron.schedule("0 * * * *", async () => {
 // run bld summary every monday
 cron.schedule("30 6 * * TUE", async () => {
   try {
+    console.info("Running BLD Summary");
     await runSummary(client);
   } catch (error) {
     console.error("Error", error);
   }
 });
 
+// DEPRECATED API - NOTHING WILL CHANGE SO IGNORE FOR NOW
 // update results to beat for bld summary
-cron.schedule("0 0 * * WED", async () => {
-  try {
-    await updateResultsToBeat();
-  } catch (error) {
-    console.error("error updating results to beat", error);
-  }
-});
+// cron.schedule("0 0 * * WED", async () => {
+//   try {
+//     console.info("Updating results to beat");
+//     await updateResultsToBeat();
+//   } catch (error) {
+//     console.error("error updating results to beat", error);
+//   }
+// });
 client.login(process.env.token);

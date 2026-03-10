@@ -34,7 +34,7 @@ async function postNewWeek(client){
   week++;
   await sendScrambles(client, week);
   // send week to submission channel
-  const submitChannel = client.channels.cache.get(process.env.submitChannelId);
+  const submitChannel = await client.channels.fetch(process.env.submitChannelId);
   await submitChannel.send(`## Week ${week}`);
   // save the new week
   await saveData(
@@ -49,7 +49,7 @@ async function postResults(client){
   let week = await getWeek();
   delete rankedResultsData.extra;
   const podiumsTitle = `Week ${week} results!`;
-  const resultsChannel = client.channels.cache.get(
+  const resultsChannel = await client.channels.fetch(
     process.env.podiumsChannelId
   );
   await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
@@ -97,7 +97,7 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
 // Send scrambles as called by postNewWeek
 async function sendScrambles(client, week) {
   // get event ids excluding extra event
-  const scramblesChannel = client.channels.cache.get(
+  const scramblesChannel = await client.channels.fetch(
     process.env.scramblesChannelId
   );
 
@@ -154,7 +154,7 @@ async function endExtraEvent(int, client) {
     return;
   }
 
-  const resultsChannel = client.channels.cache.get(
+  const resultsChannel = await client.channels.fetch(
     process.env.resultsChannelId
   );
   await int.deferReply({ flags: 64 });

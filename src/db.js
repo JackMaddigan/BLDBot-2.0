@@ -50,7 +50,7 @@ async function saveData(query, parameters) {
       db.run(query, parameters, function (err) {
         if (err) {
           console.error(err.message);
-          reject();
+          return reject(err);
         }
         resolve();
       });
@@ -65,7 +65,7 @@ function readData(query, parameters) {
     db.all(query, parameters, function (err, rows) {
       if (err) {
         console.error(err.message);
-        reject(err);
+        return reject(err);
       }
       resolve(rows);
     });
@@ -77,7 +77,7 @@ function deleteData(query, parameters) {
     db.run(query, parameters, function (err) {
       if (err) {
         console.error(err.message);
-        reject(err);
+        return reject(err);
       }
       resolve();
     });

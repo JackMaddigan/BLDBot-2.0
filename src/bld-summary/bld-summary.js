@@ -47,7 +47,7 @@ async function runSummary(client) {
 
   try {
     const summaryEmbed = makeSummaryEmbed(stats);
-    const recordsChannel = client.channels.cache.get(
+    const recordsChannel = await client.channels.fetch(
       process.env.recordsChannelId
     );
     await recordsChannel.send({ embeds: [summaryEmbed] });
@@ -58,7 +58,7 @@ async function runSummary(client) {
 
   try {
     const statsEmbed = makeStatsEmbed(stats);
-    const generalChannel = client.channels.cache.get(
+    const generalChannel = await client.channels.fetch(
       process.env.generalChannelId
     );
     await generalChannel.send({ embeds: [statsEmbed] });

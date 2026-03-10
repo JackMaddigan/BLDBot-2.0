@@ -34,7 +34,7 @@ async function fetchRecords(client) {
     NR: "https://raw.githubusercontent.com/JackMaddigan/images/main/nr.png",
   };
 
-  const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+  const adminChannel = await client.channels.fetch(process.env.adminChannelId);
   for (const record of records) {
     const recordId = record.id + record.attemptResult;
     const existing =
