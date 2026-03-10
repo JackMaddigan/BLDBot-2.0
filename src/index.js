@@ -148,8 +148,8 @@ async function onStartUp() {
   }
 }
 
-// weekly comp
-cron.schedule("0 1 * * 0", async () => {
+// weekly comp 1 min to 1
+cron.schedule("59 0 * * 0", async () => {
   console.log("Handling Comp");
   try {
     await handleWeeklyComp(client);
@@ -172,8 +172,8 @@ cron.schedule("0 0 * * 0", async () => {
   }
 });
 
-// check records every hour
-cron.schedule("0 * * * *", async () => {
+// check records every hour 2nd min
+cron.schedule("17 * * * *", async () => {
   try {
     await fetchRecords(client);
   } catch (error) {
