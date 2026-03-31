@@ -143,7 +143,7 @@ async function onStartUp() {
       events.extra = obj;
       console.log(events.extra);
     }
-    await runSummary(client);
+    // await runSummary(client);
   } catch (error) {
     console.error("Error loading start up data: ", error);
   }
