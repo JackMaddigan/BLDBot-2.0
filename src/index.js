@@ -1,24 +1,28 @@
-require("dotenv").config();
+require('dotenv').config();
 
-const { Client, IntentsBitField } = require("discord.js");
+const { Client, IntentsBitField } = require('discord.js');
 // const { registerCommands } = require("./commands");
-const runSummary = require("./bld-summary/bld-summary");
-const cron = require("node-cron");
-const { readData, saveData, deleteData } = require("./db");
+const runSummary = require('./bld-summary/bld-summary');
+const cron = require('node-cron');
+const { readData, saveData, deleteData } = require('./db');
 
 // Weekly Comp imports
-const { eventFormatToProcessAndObj, events } = require("./weekly-comp/events");
-const { handleCurrentRankings } = require("./weekly-comp/results");
-const handleSubmit = require("./weekly-comp/submit");
-const { handleCompCommand, handleWeeklyComp } = require("./weekly-comp/comp");
-const handleView = require("./weekly-comp/view");
-const handleUnsubmit = require("./weekly-comp/unsubmit");
-const fetchRecords = require("./records/records");
-const { updateResultsToBeat } = require("./bld-summary/bld-summary-helpers");
-const { handleReadComms } = require("./comm-search/search");
-const handleScrambleCommand = require("./scramble");
-const { registerCommands } = require("./commands");
-const { handleHowInt, handleHowMsg, handleHowHelpInt }=require("./comm-search/search3");
+const { eventFormatToProcessAndObj, events } = require('./weekly-comp/events');
+const { handleCurrentRankings } = require('./weekly-comp/results');
+const handleSubmit = require('./weekly-comp/submit');
+const { handleCompCommand, handleWeeklyComp } = require('./weekly-comp/comp');
+const handleView = require('./weekly-comp/view');
+const handleUnsubmit = require('./weekly-comp/unsubmit');
+const fetchRecords = require('./records/records');
+const { updateResultsToBeat } = require('./bld-summary/bld-summary-helpers');
+const { handleReadComms } = require('./comm-search/search');
+const handleScrambleCommand = require('./scramble');
+const { registerCommands } = require('./commands');
+const {
+  handleHowInt,
+  handleHowMsg,
+  handleHowHelpInt,
+} = require('./comm-search/search3');
 
 const client = new Client({
   intents: [
@@ -29,8 +33,8 @@ const client = new Client({
   ],
 });
 
-client.once("ready", async (bot) => {
-  console.log(bot.user.username + " is online!");
+client.once('ready', async (bot) => {
+  console.log(bot.user.username + ' is online!');
   try {
     await onStartUp();
     // await registerCommands(client);
@@ -39,34 +43,34 @@ client.once("ready", async (bot) => {
   }
 });
 
-client.on("interactionCreate", async (int) => {
+client.on('interactionCreate', async (int) => {
   try {
     switch (int.commandName) {
-      case "submit":
+      case 'submit':
         await handleSubmit(int);
         break;
-      case "cr":
+      case 'cr':
         await handleCurrentRankings(int);
         break;
-      case "view":
+      case 'view':
         await handleView(int);
         break;
-      case "unsubmit":
+      case 'unsubmit':
         await handleUnsubmit(int);
         break;
-      case "comp":
+      case 'comp':
         await handleCompCommand(int, client);
         break;
-      case "how":
+      case 'how':
         await handleHowInt(int);
         break;
-      case "read-comms":
+      case 'read-comms':
         await handleReadComms(int, client);
         break;
-      case "scramble":
+      case 'scramble':
         await handleScrambleCommand(int);
         break;
-      case "video-search-help":
+      case 'video-search-help':
         await handleHowHelpInt(int);
         break;
       default:
@@ -77,13 +81,15 @@ client.on("interactionCreate", async (int) => {
   }
 });
 
-client.on("messageCreate", async (msg) => {
+client.on('messageCreate', async (msg) => {
   try {
     // Do nothing with bot or empty messages
-    if (msg.author.bot || msg.content.length === 0){ return; }
+    if (msg.author.bot || msg.content.length === 0) {
+      return;
+    }
 
     // Save new comm
-    if(msg.channel.id === process.env.commChannelId){
+    if (msg.channel.id === process.env.commChannelId) {
       await saveData(`INSERT INTO comms (message_id, content) VALUES (?, ?)`, [
         msg.id,
         msg.content,
@@ -92,17 +98,16 @@ client.on("messageCreate", async (msg) => {
     }
 
     // Bot command with prefix ?
-    if(msg.content.toLowerCase().startsWith("?how")){
+    if (msg.content.toLowerCase().startsWith('?how')) {
       msg.content = msg.content.slice(4);
       await handleHowMsg(msg);
     }
-    
   } catch (error) {
     console.error(`Error saving comm ${msg.id}`, error);
   }
 });
 
-client.on("messageDelete", async (msg) => {
+client.on('messageDelete', async (msg) => {
   try {
     if (msg.author.bot || msg.channel.id !== process.env.commChannelId) return;
     await deleteData(`DELETE FROM comms WHERE message_id=?`, [msg.id]);
@@ -112,7 +117,7 @@ client.on("messageDelete", async (msg) => {
   }
 });
 
-client.on("messageUpdate", async (oldMsg, newMsg) => {
+client.on('messageUpdate', async (oldMsg, newMsg) => {
   try {
     if (newMsg.author.bot || oldMsg.channel.id !== process.env.commChannelId)
       return;
@@ -133,7 +138,7 @@ async function onStartUp() {
     // load extra event info from db into eventInfo if it exists
     const extraEventInfo = await readData(
       `SELECT * FROM key_value_store WHERE key=? LIMIT 1`,
-      ["extraEventInfo"]
+      ['extraEventInfo'],
     );
     if (extraEventInfo.length == 1) {
       const obj = JSON.parse(extraEventInfo[0].value);
@@ -145,52 +150,54 @@ async function onStartUp() {
     }
     // await runSummary(client);
   } catch (error) {
-    console.error("Error loading start up data: ", error);
+    console.error('Error loading start up data: ', error);
   }
 }
 
 // weekly comp 1 min to 1
-cron.schedule("59 0 * * 0", async () => {
-  console.log("Handling Comp");
+cron.schedule('59 0 * * 0', async () => {
+  console.log('Handling Comp');
   try {
     await handleWeeklyComp(client);
   } catch (error) {
-    console.error("Error Handling Comp", error);
+    console.error('Error Handling Comp', error);
   }
 });
 
 // weekly comp warning
-cron.schedule("0 0 * * 0", async () => {
+cron.schedule('0 0 * * 0', async () => {
   try {
     console.info('Weekly comp warning');
-    const adminChannel = await client.channels.fetch(process.env.adminChannelId);
-    if(!adminChannel) {
+    const adminChannel = await client.channels.fetch(
+      process.env.adminChannelId,
+    );
+    if (!adminChannel) {
       return console.error('Weekly comp warning - admin channel was null');
     }
-    adminChannel.send("Results and new scrambles will be posted in one hour!");
+    adminChannel.send('Results and new scrambles will be posted in one hour!');
   } catch (error) {
-    console.error("Error", error);
+    console.error('Error', error);
   }
 });
 
 // check records every hour 2nd min
-cron.schedule("17 * * * *", async () => {
+cron.schedule('17 * * * *', async () => {
   try {
     await fetchRecords(client);
   } catch (error) {
-    console.log("error fetching records", error);
+    console.log('error fetching records', error);
   }
 });
 
 // run bld summary every monday
-cron.schedule("30 6 * * TUE", async () => {
-  try {
-    console.info("Running BLD Summary");
-    await runSummary(client);
-  } catch (error) {
-    console.error("Error", error);
-  }
-});
+// cron.schedule("30 6 * * TUE", async () => {
+//   try {
+//     console.info("Running BLD Summary");
+//     await runSummary(client);
+//   } catch (error) {
+//     console.error("Error", error);
+//   }
+// });
 
 // DEPRECATED API - NOTHING WILL CHANGE SO IGNORE FOR NOW
 // update results to beat for bld summary
